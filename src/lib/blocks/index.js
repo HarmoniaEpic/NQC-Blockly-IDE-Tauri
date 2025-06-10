@@ -202,7 +202,7 @@ export function defineCustomBlocks() {
         .appendField("に設定");
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
-      this.setColour(190);
+      this.setColour('#4CBFE6');
     }
   };
   
@@ -217,7 +217,7 @@ export function defineCustomBlocks() {
         ]), "PORT")
         .appendField("の値");
       this.setOutput(true, "Number");
-      this.setColour(190);
+      this.setColour('#4CBFE6');
     }
   };
   
@@ -233,7 +233,7 @@ export function defineCustomBlocks() {
         .appendField("をクリア");
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
-      this.setColour(190);
+      this.setColour('#4CBFE6');
     }
   };
   
@@ -250,7 +250,7 @@ export function defineCustomBlocks() {
         ]), "TIMER")
         .appendField("の値");
       this.setOutput(true, "Number");
-      this.setColour(190);
+      this.setColour('#4CBFE6');
     }
   };
   
@@ -267,7 +267,7 @@ export function defineCustomBlocks() {
         .appendField("をクリア");
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
-      this.setColour(190);
+      this.setColour('#4CBFE6');
     }
   };
   
