@@ -17,7 +17,8 @@ Tauri 2.0ベースのデスクトップアプリケーションで、Blocklyを�
 
 ## ダウンロード
 ```bash
-npm install
+git clone https://github.com/HarmoniaEpic/NQC-Blockly-IDE-Tauri.git
+cd NQC-Blockly-IDE-Tauri
 ```
 
 ## セットアップ
