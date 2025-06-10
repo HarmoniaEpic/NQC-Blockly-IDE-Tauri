@@ -200,6 +200,21 @@
     </div>
     
     <div class="toolbar-section">
+      <button on:click={() => blocklyWorkspace.loadSample(1)} class="sample-button">
+        サンプル: タッチセンサー
+      </button>
+      <button on:click={() => blocklyWorkspace.loadSample(2)} class="sample-button">
+        サンプル: ライントレース
+      </button>
+      <button on:click={() => blocklyWorkspace.loadSample(3)} class="sample-button">
+        サンプル: 音楽演奏
+      </button>
+      <button on:click={() => blocklyWorkspace.loadSample(4)} class="sample-button">
+        サンプル: データログ
+      </button>
+    </div>
+    
+    <div class="toolbar-section">
       <select bind:value={selectedPort}>
         {#each serialPorts as port}
           <option value={port.path}>{port.name}</option>
@@ -338,6 +353,14 @@
   
   button.danger:hover {
     background-color: #c0392b;
+  }
+  
+  .sample-button {
+    background-color: #9b59b6;
+  }
+  
+  .sample-button:hover {
+    background-color: #8e44ad;
   }
   
   select, input[type="text"] {
