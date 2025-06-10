@@ -1,6 +1,6 @@
 <script>
   import { onMount, createEventDispatcher } from 'svelte';
-  import Blockly from 'blockly';
+  import * as Blockly from 'blockly';
   import 'blockly/msg/ja';
   import { defineCustomBlocks } from './blocks';
   import { initializeNqcGenerator } from './generator';
