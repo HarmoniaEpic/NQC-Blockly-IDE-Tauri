@@ -67,7 +67,7 @@ export function defineCustomBlocks() {
         .appendField("をON");
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
-      this.setColour(230);
+      this.setColour('#4C97FF');
     }
   };
   
@@ -87,7 +87,7 @@ export function defineCustomBlocks() {
         .appendField("をOFF");
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
-      this.setColour(230);
+      this.setColour('#4C97FF');
     }
   };
   
@@ -107,7 +107,7 @@ export function defineCustomBlocks() {
         .appendField("を前進");
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
-      this.setColour(230);
+      this.setColour('#4C97FF');
     }
   };
   
@@ -127,7 +127,7 @@ export function defineCustomBlocks() {
         .appendField("を後退");
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
-      this.setColour(230);
+      this.setColour('#4C97FF');
     }
   };
   
@@ -152,7 +152,7 @@ export function defineCustomBlocks() {
       this.setInputsInline(true);
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
-      this.setColour(230);
+      this.setColour('#4C97FF');
     }
   };
   
@@ -177,7 +177,7 @@ export function defineCustomBlocks() {
         ]), "POWER");
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
-      this.setColour(230);
+      this.setColour('#4C97FF');
     }
   };
   
