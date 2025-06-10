@@ -104,7 +104,7 @@ export function defineCustomBlocks() {
           ["B+C", "OUT_B+OUT_C"],
           ["全て", "OUT_A+OUT_B+OUT_C"]
         ]), "MOTORS")
-        .appendField("を前進");
+        .appendField("を前進方向に設定");
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
       this.setColour('#4C97FF');
@@ -124,7 +124,27 @@ export function defineCustomBlocks() {
           ["B+C", "OUT_B+OUT_C"],
           ["全て", "OUT_A+OUT_B+OUT_C"]
         ]), "MOTORS")
-        .appendField("を後退");
+        .appendField("を後退方向に設定");
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour('#4C97FF');
+    }
+  };
+  
+  Blockly.Blocks['motor_on_fwd'] = {
+    init: function() {
+      this.appendDummyInput()
+        .appendField("モーター")
+        .appendField(new Blockly.FieldDropdown([
+          ["A", "OUT_A"],
+          ["B", "OUT_B"],
+          ["C", "OUT_C"],
+          ["A+B", "OUT_A+OUT_B"],
+          ["A+C", "OUT_A+OUT_C"],
+          ["B+C", "OUT_B+OUT_C"],
+          ["全て", "OUT_A+OUT_B+OUT_C"]
+        ]), "MOTORS")
+        .appendField("を前進でON");
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
       this.setColour('#4C97FF');
@@ -221,6 +241,21 @@ export function defineCustomBlocks() {
     }
   };
   
+  Blockly.Blocks['sensor_value_bool'] = {
+    init: function() {
+      this.appendDummyInput()
+        .appendField("センサー")
+        .appendField(new Blockly.FieldDropdown([
+          ["1", "1"],
+          ["2", "2"],
+          ["3", "3"]
+        ]), "PORT")
+        .appendField("のブール値");
+      this.setOutput(true, "Boolean");
+      this.setColour('#4CBFE6');
+    }
+  };
+  
   Blockly.Blocks['clear_sensor'] = {
     init: function() {
       this.appendDummyInput()
@@ -307,6 +342,33 @@ export function defineCustomBlocks() {
     }
   };
   
+  Blockly.Blocks['play_note'] = {
+    init: function() {
+      this.appendDummyInput()
+        .appendField("音を鳴らす")
+        .appendField(new Blockly.FieldDropdown([
+          ["ド (C4)", "262"],
+          ["レ (D4)", "294"],
+          ["ミ (E4)", "330"],
+          ["ファ (F4)", "349"],
+          ["ソ (G4)", "392"],
+          ["ラ (A4)", "440"],
+          ["シ (B4)", "494"],
+          ["ド (C5)", "523"]
+        ]), "NOTE")
+        .appendField("長さ")
+        .appendField(new Blockly.FieldDropdown([
+          ["0.25秒", "25"],
+          ["0.5秒", "50"],
+          ["1秒", "100"],
+          ["2秒", "200"]
+        ]), "DURATION");
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour('#FF6EC7');
+    }
+  };
+  
   // 待機ブロック
   Blockly.Blocks['wait'] = {
     init: function() {
@@ -363,6 +425,106 @@ export function defineCustomBlocks() {
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
       this.setColour('#FF8C1A');
+    }
+  };
+  
+  Blockly.Blocks['variables_change'] = {
+    init: function() {
+      this.appendDummyInput()
+        .appendField("変数")
+        .appendField(new Blockly.FieldTextInput("x"), "VAR")
+        .appendField("を");
+      this.appendValueInput("DELTA")
+        .setCheck("Number");
+      this.appendDummyInput()
+        .appendField("だけ増やす");
+      this.setInputsInline(true);
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour('#FF8C1A');
+    }
+  };
+
+  // if-elseブロック
+  Blockly.Blocks['if_else'] = {
+    init: function() {
+      this.appendValueInput("CONDITION")
+        .setCheck(null)
+        .appendField("もし");
+      this.appendDummyInput()
+        .appendField("なら");
+      this.appendStatementInput("DO")
+        .setCheck(null);
+      this.appendDummyInput()
+        .appendField("でなければ");
+      this.appendStatementInput("ELSE")
+        .setCheck(null);
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour('#FFAB19');
+      this.setTooltip("条件分岐（if-else）");
+    }
+  };
+
+  // whileループブロック
+  Blockly.Blocks['while_loop'] = {
+    init: function() {
+      this.appendValueInput("CONDITION")
+        .setCheck("Boolean")
+        .appendField("繰り返す 条件:");
+      this.appendStatementInput("DO")
+        .setCheck(null);
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour('#FFAB19');
+      this.setTooltip("条件が真の間繰り返します");
+    }
+  };
+
+  // repeat繰り返しブロック
+  Blockly.Blocks['repeat_times'] = {
+    init: function() {
+      this.appendValueInput("TIMES")
+        .setCheck("Number")
+        .appendField("繰り返す");
+      this.appendDummyInput()
+        .appendField("回");
+      this.appendStatementInput("DO")
+        .setCheck(null);
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour('#FFAB19');
+    }
+  };
+
+  // データログブロック
+  Blockly.Blocks['create_datalog'] = {
+    init: function() {
+      this.appendValueInput("SIZE")
+        .setCheck("Number")
+        .appendField("データログを");
+      this.appendDummyInput()
+        .appendField("件作成");
+      this.setInputsInline(true);
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour('#FF6680');
+      this.setTooltip("データログを作成します");
+    }
+  };
+  
+  Blockly.Blocks['add_to_datalog'] = {
+    init: function() {
+      this.appendValueInput("VALUE")
+        .setCheck(null)
+        .appendField("データログに");
+      this.appendDummyInput()
+        .appendField("を追加");
+      this.setInputsInline(true);
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour('#FF6680');
+      this.setTooltip("データログに値を追加します");
     }
   };
 }
