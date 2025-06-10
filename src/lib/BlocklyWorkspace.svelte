@@ -136,7 +136,7 @@
         </block>
       </category>
       
-      <category name="イベント" colour="#FFAB00">
+      <category name="イベント" colour="#FFBF00">
         <block type="task_main"></block>
         <block type="task_custom">
           <field name="TASKNAME">myTask</field>
