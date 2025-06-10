@@ -28,6 +28,11 @@ cd NQC-Blockly-IDE-Tauri
 npm install
 ```
 
+アプリアイコンの設定:
+```bash
+npm run tauri icon RCX.png
+```
+
 ## 開発
 
 開発モードでアプリを起動:
