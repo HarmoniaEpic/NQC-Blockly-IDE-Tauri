@@ -1,4 +1,4 @@
-# 注意：工事中 Caution: Under Construction
+# 注意：工事中 / Caution: Under Construction
 
 ![LOGO](RCX.png)
 
