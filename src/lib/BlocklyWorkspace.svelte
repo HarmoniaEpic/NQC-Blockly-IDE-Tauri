@@ -41,7 +41,7 @@
         vertical: true
       },
       renderer: 'zelos',
-      sounds: false
+      sounds: true
     });
     
     // 変更時にコードを更新
