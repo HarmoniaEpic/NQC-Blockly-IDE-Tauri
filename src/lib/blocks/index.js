@@ -286,7 +286,7 @@ export function defineCustomBlocks() {
         ]), "SOUND");
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
-      this.setColour(300);
+      this.setColour('#FF6EC7');
     }
   };
   
@@ -303,7 +303,7 @@ export function defineCustomBlocks() {
       this.setInputsInline(true);
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
-      this.setColour(300);
+      this.setColour('#FF6EC7');
     }
   };
   
