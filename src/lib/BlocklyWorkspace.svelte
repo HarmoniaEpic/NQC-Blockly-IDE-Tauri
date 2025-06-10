@@ -89,6 +89,333 @@
     }
   }
   
+  export function loadSample(sampleNumber) {
+    if (!workspace) return;
+    
+    let xmlText = '';
+    
+    switch(sampleNumber) {
+      case 1:
+        // サンプル1: タッチセンサー
+        xmlText = `
+          <xml xmlns="https://developers.google.com/blockly/xml">
+            <block type="task_main" x="50" y="50">
+              <statement name="STATEMENTS">
+                <block type="set_sensor">
+                  <field name="PORT">1</field>
+                  <field name="TYPE">SENSOR_TOUCH</field>
+                  <next>
+                    <block type="while_loop">
+                      <value name="CONDITION">
+                        <block type="logic_boolean">
+                          <field name="BOOL">TRUE</field>
+                        </block>
+                      </value>
+                      <statement name="DO">
+                        <block type="if_else">
+                          <value name="CONDITION">
+                            <block type="sensor_value_bool">
+                              <field name="PORT">1</field>
+                            </block>
+                          </value>
+                          <statement name="DO">
+                            <block type="motor_on_fwd">
+                              <field name="MOTORS">OUT_A+OUT_C</field>
+                              <next>
+                                <block type="play_sound">
+                                  <field name="SOUND">SOUND_CLICK</field>
+                                </block>
+                              </next>
+                            </block>
+                          </statement>
+                          <statement name="ELSE">
+                            <block type="motor_off">
+                              <field name="MOTORS">OUT_A+OUT_C</field>
+                            </block>
+                          </statement>
+                        </block>
+                      </statement>
+                    </block>
+                  </next>
+                </block>
+              </statement>
+            </block>
+          </xml>
+        `;
+        break;
+        
+      case 2:
+        // サンプル2: ライントレース
+        xmlText = `
+          <xml xmlns="https://developers.google.com/blockly/xml">
+            <block type="variables_declare_global" x="50" y="20">
+              <field name="VAR">threshold</field>
+              <value name="VALUE">
+                <block type="math_number">
+                  <field name="NUM">40</field>
+                </block>
+              </value>
+            </block>
+            <block type="task_main" x="50" y="80">
+              <statement name="STATEMENTS">
+                <block type="set_sensor">
+                  <field name="PORT">2</field>
+                  <field name="TYPE">SENSOR_LIGHT</field>
+                  <next>
+                    <block type="set_power">
+                      <field name="MOTORS">OUT_A+OUT_C</field>
+                      <field name="POWER">OUT_HALF</field>
+                      <next>
+                        <block type="while_loop">
+                          <value name="CONDITION">
+                            <block type="logic_boolean">
+                              <field name="BOOL">TRUE</field>
+                            </block>
+                          </value>
+                          <statement name="DO">
+                            <block type="if_else">
+                              <value name="CONDITION">
+                                <block type="logic_compare">
+                                  <field name="OP">LT</field>
+                                  <value name="A">
+                                    <block type="sensor_value">
+                                      <field name="PORT">2</field>
+                                    </block>
+                                  </value>
+                                  <value name="B">
+                                    <block type="variables_get">
+                                      <field name="VAR">threshold</field>
+                                    </block>
+                                  </value>
+                                </block>
+                              </value>
+                              <statement name="DO">
+                                <block type="motor_on_fwd">
+                                  <field name="MOTORS">OUT_A</field>
+                                  <next>
+                                    <block type="motor_off">
+                                      <field name="MOTORS">OUT_C</field>
+                                    </block>
+                                  </next>
+                                </block>
+                              </statement>
+                              <statement name="ELSE">
+                                <block type="motor_off">
+                                  <field name="MOTORS">OUT_A</field>
+                                  <next>
+                                    <block type="motor_on_fwd">
+                                      <field name="MOTORS">OUT_C</field>
+                                    </block>
+                                  </next>
+                                </block>
+                              </statement>
+                            </block>
+                          </statement>
+                        </block>
+                      </next>
+                    </block>
+                  </next>
+                </block>
+              </statement>
+            </block>
+          </xml>
+        `;
+        break;
+        
+      case 3:
+        // サンプル3: 音楽演奏（マルチタスク）
+        xmlText = `
+          <xml xmlns="https://developers.google.com/blockly/xml">
+            <block type="task_main" x="50" y="50">
+              <statement name="STATEMENTS">
+                <block type="start_task">
+                  <field name="TASKNAME">melody1</field>
+                  <next>
+                    <block type="wait">
+                      <value name="DURATION">
+                        <block type="math_number">
+                          <field name="NUM">200</field>
+                        </block>
+                      </value>
+                      <next>
+                        <block type="start_task">
+                          <field name="TASKNAME">melody2</field>
+                          <next>
+                            <block type="wait">
+                              <value name="DURATION">
+                                <block type="math_number">
+                                  <field name="NUM">200</field>
+                                </block>
+                              </value>
+                              <next>
+                                <block type="stop_task">
+                                  <field name="TASKNAME">melody1</field>
+                                </block>
+                              </next>
+                            </block>
+                          </next>
+                        </block>
+                      </next>
+                    </block>
+                  </next>
+                </block>
+              </statement>
+            </block>
+            
+            <block type="task_custom" x="400" y="50">
+              <field name="TASKNAME">melody1</field>
+              <statement name="STATEMENTS">
+                <block type="repeat_times">
+                  <value name="TIMES">
+                    <block type="math_number">
+                      <field name="NUM">10</field>
+                    </block>
+                  </value>
+                  <statement name="DO">
+                    <block type="play_note">
+                      <field name="NOTE">262</field>
+                      <field name="DURATION">25</field>
+                      <next>
+                        <block type="wait">
+                          <value name="DURATION">
+                            <block type="math_number">
+                              <field name="NUM">25</field>
+                            </block>
+                          </value>
+                        </block>
+                      </next>
+                    </block>
+                  </statement>
+                </block>
+              </statement>
+            </block>
+            
+            <block type="task_custom" x="400" y="250">
+              <field name="TASKNAME">melody2</field>
+              <statement name="STATEMENTS">
+                <block type="repeat_times">
+                  <value name="TIMES">
+                    <block type="math_number">
+                      <field name="NUM">5</field>
+                    </block>
+                  </value>
+                  <statement name="DO">
+                    <block type="play_note">
+                      <field name="NOTE">392</field>
+                      <field name="DURATION">50</field>
+                      <next>
+                        <block type="wait">
+                          <value name="DURATION">
+                            <block type="math_number">
+                              <field name="NUM">50</field>
+                            </block>
+                          </value>
+                        </block>
+                      </next>
+                    </block>
+                  </statement>
+                </block>
+              </statement>
+            </block>
+          </xml>
+        `;
+        break;
+        
+      case 4:
+        // サンプル4: データログ
+        xmlText = `
+          <xml xmlns="https://developers.google.com/blockly/xml">
+            <block type="variables_declare_global" x="50" y="20">
+              <field name="VAR">count</field>
+              <value name="VALUE">
+                <block type="math_number">
+                  <field name="NUM">0</field>
+                </block>
+              </value>
+            </block>
+            <block type="task_main" x="50" y="80">
+              <statement name="STATEMENTS">
+                <block type="set_sensor">
+                  <field name="PORT">1</field>
+                  <field name="TYPE">SENSOR_LIGHT</field>
+                  <next>
+                    <block type="create_datalog">
+                      <value name="SIZE">
+                        <block type="math_number">
+                          <field name="NUM">100</field>
+                        </block>
+                      </value>
+                      <next>
+                        <block type="clear_timer">
+                          <field name="TIMER">0</field>
+                          <next>
+                            <block type="repeat_times">
+                              <value name="TIMES">
+                                <block type="math_number">
+                                  <field name="NUM">100</field>
+                                </block>
+                              </value>
+                              <statement name="DO">
+                                <block type="add_to_datalog">
+                                  <value name="VALUE">
+                                    <block type="sensor_value">
+                                      <field name="PORT">1</field>
+                                    </block>
+                                  </value>
+                                  <next>
+                                    <block type="add_to_datalog">
+                                      <value name="VALUE">
+                                        <block type="timer_value">
+                                          <field name="TIMER">0</field>
+                                        </block>
+                                      </value>
+                                      <next>
+                                        <block type="variables_change">
+                                          <field name="VAR">count</field>
+                                          <value name="DELTA">
+                                            <block type="math_number">
+                                              <field name="NUM">1</field>
+                                            </block>
+                                          </value>
+                                          <next>
+                                            <block type="wait">
+                                              <value name="DURATION">
+                                                <block type="math_number">
+                                                  <field name="NUM">50</field>
+                                                </block>
+                                              </value>
+                                            </block>
+                                          </next>
+                                        </block>
+                                      </next>
+                                    </block>
+                                  </next>
+                                </block>
+                              </statement>
+                              <next>
+                                <block type="play_sound">
+                                  <field name="SOUND">SOUND_DOUBLE_BEEP</field>
+                                </block>
+                              </next>
+                            </block>
+                          </next>
+                        </block>
+                      </next>
+                    </block>
+                  </next>
+                </block>
+              </statement>
+            </block>
+          </xml>
+        `;
+        break;
+    }
+    
+    if (xmlText) {
+      loadWorkspaceXml(xmlText);
+    }
+  }
+  
   const toolboxXml = `
     <xml xmlns="https://developers.google.com/blockly/xml" id="toolbox" style="display: none">
       <category name="動き" colour="#4C97FF">
@@ -102,6 +429,9 @@
           <field name="MOTORS">OUT_A</field>
         </block>
         <block type="motor_rev">
+          <field name="MOTORS">OUT_A</field>
+        </block>
+        <block type="motor_on_fwd">
           <field name="MOTORS">OUT_A</field>
         </block>
         <block type="motor_on_for">
@@ -134,6 +464,10 @@
             </block>
           </value>
         </block>
+        <block type="play_note">
+          <field name="NOTE">262</field>
+          <field name="DURATION">50</field>
+        </block>
       </category>
       
       <category name="イベント" colour="#FFBF00">
@@ -150,8 +484,10 @@
       </category>
       
       <category name="制御" colour="#FFAB19">
+        <block type="if_else"></block>
         <block type="controls_if"></block>
         <block type="controls_ifelse"></block>
+        <block type="while_loop"></block>
         <block type="controls_whileUntil"></block>
         <block type="controls_for">
           <value name="FROM">
@@ -170,6 +506,13 @@
             </block>
           </value>
         </block>
+        <block type="repeat_times">
+          <value name="TIMES">
+            <block type="math_number">
+              <field name="NUM">10</field>
+            </block>
+          </value>
+        </block>
         <block type="wait">
           <value name="DURATION">
             <block type="math_number">
@@ -185,6 +528,9 @@
           <field name="TYPE">SENSOR_TOUCH</field>
         </block>
         <block type="sensor_value">
+          <field name="PORT">1</field>
+        </block>
+        <block type="sensor_value_bool">
           <field name="PORT">1</field>
         </block>
         <block type="clear_sensor">
@@ -234,6 +580,31 @@
           <value name="VALUE">
             <block type="math_number">
               <field name="NUM">0</field>
+            </block>
+          </value>
+        </block>
+        <block type="variables_change">
+          <field name="VAR">x</field>
+          <value name="DELTA">
+            <block type="math_number">
+              <field name="NUM">1</field>
+            </block>
+          </value>
+        </block>
+      </category>
+      
+      <category name="データログ" colour="#FF6680">
+        <block type="create_datalog">
+          <value name="SIZE">
+            <block type="math_number">
+              <field name="NUM">100</field>
+            </block>
+          </value>
+        </block>
+        <block type="add_to_datalog">
+          <value name="VALUE">
+            <block type="sensor_value">
+              <field name="PORT">1</field>
             </block>
           </value>
         </block>
