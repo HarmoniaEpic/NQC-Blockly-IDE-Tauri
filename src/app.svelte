@@ -1,0 +1,405 @@
+<script>
+  import { onMount } from 'svelte';
+  import { invoke } from '@tauri-apps/api/core';
+  import { message, open, save } from '@tauri-apps/plugin-dialog';
+  import { readTextFile, writeTextFile } from '@tauri-apps/plugin-fs';
+  import BlocklyWorkspace from './lib/BlocklyWorkspace.svelte';
+  
+  let blocklyWorkspace;
+  let generatedCode = '';
+  let serialPorts = [];
+  let selectedPort = '';
+  let nqcPath = 'nqc';
+  let targetType = 'RCX';
+  let programSlot = 1;
+  let connectionStatus = false;
+
+  onMount(async () => {
+    await loadSerialPorts();
+  });
+
+  async function loadSerialPorts() {
+    try {
+      serialPorts = await invoke('get_serial_ports');
+      if (serialPorts.length > 0 && !selectedPort) {
+        selectedPort = serialPorts[0].path;
+      }
+    } catch (error) {
+      await message(error.toString(), { title: 'エラー', kind: 'error' });
+    }
+  }
+
+  function handleCodeUpdate(event) {
+    generatedCode = event.detail.code;
+  }
+
+  async function compileCode() {
+    try {
+      const result = await invoke('compile_nqc', {
+        nqcPath,
+        code: generatedCode,
+        serialPort: selectedPort,
+        targetType
+      });
+
+      if (result.success) {
+        await message('コンパイル成功', { title: '成功', kind: 'info' });
+      } else {
+        await message(`コンパイルエラー:\n${result.stderr}`, { title: 'エラー', kind: 'error' });
+      }
+    } catch (error) {
+      await message(error.toString(), { title: 'エラー', kind: 'error' });
+    }
+  }
+
+  async function downloadToRCX() {
+    try {
+      const result = await invoke('download_to_rcx', {
+        nqcPath,
+        code: generatedCode,
+        serialPort: selectedPort,
+        targetType,
+        programSlot
+      });
+
+      if (result.success) {
+        connectionStatus = true;
+        await message('RCXへの転送成功', { title: '成功', kind: 'info' });
+      } else {
+        await message(`転送エラー:\n${result.stderr}`, { title: 'エラー', kind: 'error' });
+      }
+    } catch (error) {
+      await message(error.toString(), { title: 'エラー', kind: 'error' });
+    }
+  }
+
+  async function controlRCX(action) {
+    try {
+      const result = await invoke('control_rcx', {
+        nqcPath,
+        serialPort: selectedPort,
+        action
+      });
+
+      if (result.success) {
+        await message(`${action}コマンド実行成功`, { title: '成功', kind: 'info' });
+      } else {
+        await message(`実行エラー:\n${result.stderr}`, { title: 'エラー', kind: 'error' });
+      }
+    } catch (error) {
+      await message(error.toString(), { title: 'エラー', kind: 'error' });
+    }
+  }
+
+  async function saveProject() {
+    try {
+      const filePath = await save({
+        filters: [{
+          name: 'NQC Project',
+          extensions: ['nqcproj']
+        }]
+      });
+      
+      if (filePath) {
+        const projectData = {
+          version: '1.0',
+          workspace: blocklyWorkspace.getWorkspaceXml(),
+          nqcCode: generatedCode,
+          settings: {
+            nqcPath,
+            targetType,
+            selectedPort
+          }
+        };
+        
+        await writeTextFile(filePath, JSON.stringify(projectData, null, 2));
+        await message('プロジェクトを保存しました', { title: '成功', kind: 'info' });
+      }
+    } catch (error) {
+      await message(error.toString(), { title: 'エラー', kind: 'error' });
+    }
+  }
+
+  async function loadProject() {
+    try {
+      const filePath = await open({
+        multiple: false,
+        filters: [{
+          name: 'NQC Project',
+          extensions: ['nqcproj']
+        }]
+      });
+      
+      if (filePath) {
+        const content = await readTextFile(filePath);
+        const projectData = JSON.parse(content);
+        
+        blocklyWorkspace.loadWorkspaceXml(projectData.workspace);
+        
+        if (projectData.settings) {
+          nqcPath = projectData.settings.nqcPath || nqcPath;
+          targetType = projectData.settings.targetType || targetType;
+          selectedPort = projectData.settings.selectedPort || selectedPort;
+        }
+        
+        await message('プロジェクトを読み込みました', { title: '成功', kind: 'info' });
+      }
+    } catch (error) {
+      await message(error.toString(), { title: 'エラー', kind: 'error' });
+    }
+  }
+
+  async function exportNqcCode() {
+    try {
+      const filePath = await save({
+        filters: [{
+          name: 'NQC Source',
+          extensions: ['nqc']
+        }]
+      });
+      
+      if (filePath) {
+        await writeTextFile(filePath, generatedCode);
+        await message('NQCコードをエクスポートしました', { title: '成功', kind: 'info' });
+      }
+    } catch (error) {
+      await message(error.toString(), { title: 'エラー', kind: 'error' });
+    }
+  }
+
+  async function clearWorkspace() {
+    const confirmed = await message('ワークスペースをクリアしますか？', {
+      title: '確認',
+      kind: 'warning',
+      okLabel: 'はい',
+      cancelLabel: 'いいえ'
+    });
+    
+    if (confirmed) {
+      blocklyWorkspace.clearWorkspace();
+    }
+  }
+</script>
+
+<main>
+  <header>
+    <h1>🧱 NQC Blockly IDE for LEGO RCX</h1>
+    <div class="status">
+      <span class="connection-status" class:connected={connectionStatus}>
+        {connectionStatus ? '接続済み' : '未接続'}
+      </span>
+    </div>
+  </header>
+
+  <nav class="toolbar">
+    <div class="toolbar-section">
+      <button on:click={clearWorkspace}>クリア</button>
+      <button on:click={saveProject}>保存</button>
+      <button on:click={loadProject}>読み込み</button>
+      <button on:click={exportNqcCode}>NQCエクスポート</button>
+    </div>
+    
+    <div class="toolbar-section">
+      <select bind:value={selectedPort}>
+        {#each serialPorts as port}
+          <option value={port.path}>{port.name}</option>
+        {/each}
+      </select>
+      
+      <select bind:value={targetType}>
+        <option value="RCX">RCX</option>
+        <option value="RCX2">RCX2</option>
+        <option value="CM">CyberMaster</option>
+        <option value="Scout">Scout</option>
+      </select>
+      
+      <select bind:value={programSlot}>
+        <option value={1}>スロット 1</option>
+        <option value={2}>スロット 2</option>
+        <option value={3}>スロット 3</option>
+        <option value={4}>スロット 4</option>
+        <option value={5}>スロット 5</option>
+      </select>
+    </div>
+    
+    <div class="toolbar-section">
+      <button on:click={compileCode}>コンパイル</button>
+      <button on:click={downloadToRCX} class="primary">🚀 RCXに転送</button>
+      <button on:click={() => controlRCX('run')}>実行</button>
+      <button on:click={() => controlRCX('stop')}>停止</button>
+      <button on:click={() => controlRCX('clear')} class="danger">クリア</button>
+    </div>
+  </nav>
+
+  <div class="workspace-container">
+    <BlocklyWorkspace 
+      bind:this={blocklyWorkspace}
+      on:codeUpdate={handleCodeUpdate}
+    />
+    
+    <aside class="code-panel">
+      <div class="code-header">
+        <h3>生成されたNQCコード</h3>
+      </div>
+      <pre class="generated-code">{generatedCode || '// Blocklyでプログラムを作成してください'}</pre>
+    </aside>
+  </div>
+  
+  <footer>
+    <div class="settings">
+      <label>
+        NQCパス:
+        <input type="text" bind:value={nqcPath} />
+      </label>
+    </div>
+  </footer>
+</main>
+
+<style>
+  :global(body) {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #f5f5f5;
+  }
+  
+  main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+  
+  header {
+    background-color: #2c3e50;
+    color: white;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  h1 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+  
+  .connection-status {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    background-color: #e74c3c;
+    font-size: 0.9rem;
+  }
+  
+  .connection-status.connected {
+    background-color: #27ae60;
+  }
+  
+  .toolbar {
+    background-color: #ecf0f1;
+    padding: 0.5rem 1rem;
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #bdc3c7;
+  }
+  
+  .toolbar-section {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  
+  button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    background-color: #3498db;
+    color: white;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+  }
+  
+  button:hover {
+    background-color: #2980b9;
+  }
+  
+  button.primary {
+    background-color: #27ae60;
+  }
+  
+  button.primary:hover {
+    background-color: #219a52;
+  }
+  
+  button.danger {
+    background-color: #e74c3c;
+  }
+  
+  button.danger:hover {
+    background-color: #c0392b;
+  }
+  
+  select, input[type="text"] {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9rem;
+  }
+  
+  .workspace-container {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+  
+  .code-panel {
+    width: 400px;
+    background-color: #2b2b2b;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid #ddd;
+  }
+  
+  .code-header {
+    background-color: #3c3c3c;
+    color: white;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #555;
+  }
+  
+  .code-header h3 {
+    margin: 0;
+    font-size: 1rem;
+  }
+  
+  .generated-code {
+    flex: 1;
+    margin: 0;
+    padding: 1rem;
+    color: #d4d4d4;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    overflow: auto;
+    white-space: pre-wrap;
+  }
+  
+  footer {
+    background-color: #ecf0f1;
+    padding: 0.5rem 1rem;
+    border-top: 1px solid #bdc3c7;
+  }
+  
+  .settings {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+  
+  .settings label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+  }
+</style>
