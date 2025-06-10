@@ -12,7 +12,7 @@
   let nqcGenerator;
   
   onMount(() => {
-    // カスタムブロックを定義
+    // カスタムブロックを定義（標準ブロックの色もオーバーライド）
     defineCustomBlocks();
     
     // NQCジェネレータを初期化
