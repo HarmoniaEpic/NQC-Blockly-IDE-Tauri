@@ -218,6 +218,11 @@ export function initializeNqcGenerator() {
     return `Rev(${motors});\n`;
   };
   
+  nqcGenerator['motor_on_fwd'] = function(block) {
+    const motors = block.getFieldValue('MOTORS');
+    return `OnFwd(${motors});\n`;
+  };
+  
   nqcGenerator['motor_on_for'] = function(block) {
     const motors = block.getFieldValue('MOTORS');
     const time = nqcGenerator.valueToCode(block, 'TIME', nqcGenerator.ORDER_ATOMIC) || '100';
@@ -240,6 +245,12 @@ export function initializeNqcGenerator() {
   nqcGenerator['sensor_value'] = function(block) {
     const port = block.getFieldValue('PORT');
     return [`SENSOR_${port}`, nqcGenerator.ORDER_ATOMIC];
+  };
+  
+  nqcGenerator['sensor_value_bool'] = function(block) {
+    const port = block.getFieldValue('PORT');
+    const portNum = parseInt(port) - 1;
+    return [`SensorValueBool(${portNum})`, nqcGenerator.ORDER_ATOMIC];
   };
   
   nqcGenerator['clear_sensor'] = function(block) {
@@ -270,6 +281,12 @@ export function initializeNqcGenerator() {
     return `PlayTone(${freq}, ${duration});\n`;
   };
   
+  nqcGenerator['play_note'] = function(block) {
+    const frequency = block.getFieldValue('NOTE');
+    const duration = block.getFieldValue('DURATION');
+    return `PlayTone(${frequency}, ${duration});\n`;
+  };
+  
   // 待機
   nqcGenerator['wait'] = function(block) {
     const duration = nqcGenerator.valueToCode(block, 'DURATION', nqcGenerator.ORDER_ATOMIC) || '100';
@@ -298,6 +315,12 @@ export function initializeNqcGenerator() {
     const varName = block.getFieldValue('VAR');
     const value = nqcGenerator.valueToCode(block, 'VALUE', nqcGenerator.ORDER_ATOMIC) || '0';
     return `${varName} = ${value};\n`;
+  };
+  
+  nqcGenerator['variables_change'] = function(block) {
+    const varName = block.getFieldValue('VAR');
+    const delta = nqcGenerator.valueToCode(block, 'DELTA', nqcGenerator.ORDER_ATOMIC) || '1';
+    return `${varName} += ${delta};\n`;
   };
   
   // 算術演算
@@ -394,6 +417,52 @@ export function initializeNqcGenerator() {
   nqcGenerator['logic_boolean'] = function(block) {
     const code = (block.getFieldValue('BOOL') === 'TRUE') ? 'true' : 'false';
     return [code, nqcGenerator.ORDER_ATOMIC];
+  };
+  
+  // if-elseブロック
+  nqcGenerator['if_else'] = function(block) {
+    const condition = nqcGenerator.valueToCode(block, 'CONDITION', nqcGenerator.ORDER_ATOMIC) || 'false';
+    const doStatements = nqcGenerator.statementToCode(block, 'DO');
+    const elseStatements = nqcGenerator.statementToCode(block, 'ELSE');
+    
+    let code = `if (${condition})\n{\n${doStatements}}\n`;
+    if (elseStatements) {
+      code += `else\n{\n${elseStatements}}\n`;
+    }
+    
+    return code;
+  };
+  
+  // whileループ
+  nqcGenerator['while_loop'] = function(block) {
+    const condition = nqcGenerator.valueToCode(block, 'CONDITION', nqcGenerator.ORDER_ATOMIC) || 'false';
+    const statements = nqcGenerator.statementToCode(block, 'DO');
+    
+    return `while (${condition})\n{\n${statements}}\n`;
+  };
+  
+  // repeat回数指定ループ
+  nqcGenerator['repeat_times'] = function(block) {
+    const times = nqcGenerator.valueToCode(block, 'TIMES', nqcGenerator.ORDER_ATOMIC) || '1';
+    const statements = nqcGenerator.statementToCode(block, 'DO');
+    
+    if (!statements || statements.trim() === '') {
+      return '';
+    }
+    
+    const loopVar = 'i';
+    return `for (int ${loopVar} = 0; ${loopVar} < ${times}; ${loopVar}++)\n{\n${statements}}\n`;
+  };
+  
+  // データログ
+  nqcGenerator['create_datalog'] = function(block) {
+    const size = nqcGenerator.valueToCode(block, 'SIZE', nqcGenerator.ORDER_ATOMIC) || '100';
+    return `CreateDatalog(${size});\n`;
+  };
+  
+  nqcGenerator['add_to_datalog'] = function(block) {
+    const value = nqcGenerator.valueToCode(block, 'VALUE', nqcGenerator.ORDER_ATOMIC) || '0';
+    return `AddToDatalog(${value});\n`;
   };
   
   // 制御構造
