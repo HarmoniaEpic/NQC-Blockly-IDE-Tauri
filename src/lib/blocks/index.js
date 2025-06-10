@@ -11,7 +11,7 @@ export function defineCustomBlocks() {
         .appendField("タスク main");
       this.appendStatementInput("STATEMENTS")
         .setCheck(null);
-      this.setColour(260);
+      this.setColour(#FFBF00);
       this.setTooltip("メインタスクを定義します");
     }
   };
@@ -23,7 +23,7 @@ export function defineCustomBlocks() {
         .appendField(new Blockly.FieldTextInput("myTask"), "TASKNAME");
       this.appendStatementInput("STATEMENTS")
         .setCheck(null);
-      this.setColour(260);
+      this.setColour(#FFBF00);
       this.setTooltip("カスタムタスクを定義します");
     }
   };
@@ -35,7 +35,7 @@ export function defineCustomBlocks() {
         .appendField(new Blockly.FieldTextInput("myTask"), "TASKNAME");
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
-      this.setColour(260);
+      this.setColour(#FFBF00);
     }
   };
   
@@ -46,7 +46,7 @@ export function defineCustomBlocks() {
         .appendField(new Blockly.FieldTextInput("myTask"), "TASKNAME");
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
-      this.setColour(260);
+      this.setColour(#FFBF00);
     }
   };
   
@@ -334,7 +334,7 @@ export function defineCustomBlocks() {
       this.appendDummyInput()
         .appendField("で初期化");
       this.setInputsInline(true);
-      this.setColour(330);
+      this.setColour(#FF8C1A);
       this.setTooltip("グローバル変数を宣言して初期値を設定します");
     }
   };
@@ -345,7 +345,7 @@ export function defineCustomBlocks() {
         .appendField("変数")
         .appendField(new Blockly.FieldTextInput("x"), "VAR");
       this.setOutput(true, "Number");
-      this.setColour(330);
+      this.setColour(#FF8C1A);
     }
   };
   
@@ -362,7 +362,7 @@ export function defineCustomBlocks() {
       this.setInputsInline(true);
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
-      this.setColour(330);
+      this.setColour(#FF8C1A);
     }
   };
 }
