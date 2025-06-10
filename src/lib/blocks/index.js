@@ -1,6 +1,9 @@
 import * as Blockly from 'blockly';
 
 export function defineCustomBlocks() {
+  // 標準ブロックの色をオーバーライド
+  overrideStandardBlockColors();
+  
   // タスクブロック
   Blockly.Blocks['task_main'] = {
     init: function() {
@@ -362,4 +365,35 @@ export function defineCustomBlocks() {
       this.setColour(330);
     }
   };
+}
+
+// 標準ブロックの色をオーバーライド
+function overrideStandardBlockColors() {
+  // 制御ブロック（オレンジ色 #FFAB19）
+  const controlColor = '#FFAB19';
+  const controlBlocks = ['controls_if', 'controls_ifelse', 'controls_whileUntil', 'controls_for'];
+  
+  controlBlocks.forEach(blockType => {
+    if (Blockly.Blocks[blockType]) {
+      const originalInit = Blockly.Blocks[blockType].init;
+      Blockly.Blocks[blockType].init = function() {
+        originalInit.call(this);
+        this.setColour(controlColor);
+      };
+    }
+  });
+  
+  // 演算・論理ブロック（緑色 #40BF4A）
+  const mathColor = '#40BF4A';
+  const mathBlocks = ['math_number', 'math_arithmetic', 'logic_compare', 'logic_operation', 'logic_negate', 'logic_boolean'];
+  
+  mathBlocks.forEach(blockType => {
+    if (Blockly.Blocks[blockType]) {
+      const originalInit = Blockly.Blocks[blockType].init;
+      Blockly.Blocks[blockType].init = function() {
+        originalInit.call(this);
+        this.setColour(mathColor);
+      };
+    }
+  });
 }
