@@ -1,6 +1,7 @@
 <script>
   import { onMount, createEventDispatcher } from 'svelte';
   import * as Blockly from 'blockly';
+  import * as BlocklyXml from 'blockly/xml';
   import 'blockly/msg/ja';
   import { defineCustomBlocks } from './blocks';
   import { initializeNqcGenerator } from './generator';
@@ -73,16 +74,25 @@
   
   export function getWorkspaceXml() {
     if (!workspace) return '';
-    const xml = Blockly.Xml.workspaceToDom(workspace);
-    return Blockly.Xml.domToText(xml);
+    try {
+      // BlocklyXmlを使用
+      const xml = BlocklyXml.workspaceToDom(workspace);
+      return BlocklyXml.domToText(xml);
+    } catch (e) {
+      console.error('Error saving workspace:', e);
+      // フォールバック: serialization APIを使用
+      const state = Blockly.serialization.workspaces.save(workspace);
+      return JSON.stringify(state);
+    }
   }
   
   export function loadWorkspaceXml(xmlText) {
     if (!workspace) return;
     try {
       workspace.clear();
-      const xml = Blockly.Xml.textToDom(xmlText);
-      Blockly.Xml.domToWorkspace(xml, workspace);
+      // BlocklyXmlを使用
+      const xml = BlocklyXml.textToDom(xmlText);
+      BlocklyXml.domToWorkspace(xml, workspace);
       updateCode();
     } catch (error) {
       console.error('Failed to load workspace:', error);
