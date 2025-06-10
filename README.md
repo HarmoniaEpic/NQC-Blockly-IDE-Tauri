@@ -48,6 +48,12 @@ npm run tauri dev
 npm run tauri build
 ```
 
+## 生成物
+ビルドに成功した場合、生成物は以下のフォルダにあります。
+```
+NQC-Blockly-IDE-Tauri/src-tauri/target
+```
+
 ## 使い方
 
 1. アプリを起動
