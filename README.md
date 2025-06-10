@@ -6,7 +6,7 @@
 
 # NQC Blockly IDE for LEGO RCX
 
-Tauri 2.0ベースのデスクトップアプリケーションで、Blocklyを使用してLEGO RCXをビジュアルプログラミングできます。
+Tauri 2.0ベースのデスクトップアプリケーションです。Blocklyを使用してLEGO RCXをビジュアルプログラミングできます。
 
 ## 前提条件
 ### ビルド時
