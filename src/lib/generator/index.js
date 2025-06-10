@@ -1,4 +1,4 @@
-import Blockly from 'blockly';
+import * as Blockly from 'blockly';
 
 export function initializeNqcGenerator() {
   const nqcGenerator = new Blockly.Generator('NQC');
