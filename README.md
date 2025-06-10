@@ -1,3 +1,9 @@
+# 注意：工事中 Caution: Under Construction
+
+![LOGO](RCX.png)
+
+まだ動かないかもしれません。May not work yet.
+
 # NQC Blockly IDE for LEGO RCX
 
 Tauri 2.0ベースのデスクトップアプリケーションで、Blocklyを使用してLEGO RCXをビジュアルプログラミングできます。
