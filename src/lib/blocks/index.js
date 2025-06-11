@@ -369,6 +369,52 @@ export function defineCustomBlocks() {
     }
   };
   
+  // =========================
+  // 見た目ブロック（LCD表示）
+  // =========================
+  
+  // 表示モード選択ブロック
+  Blockly.Blocks['select_display'] = {
+    init: function() {
+      this.appendDummyInput()
+        .appendField("LCD表示を")
+        .appendField(new Blockly.FieldDropdown([
+          ["時計", "DISPLAY_WATCH"],
+          ["センサー1", "DISPLAY_SENSOR_1"],
+          ["センサー2", "DISPLAY_SENSOR_2"],
+          ["センサー3", "DISPLAY_SENSOR_3"],
+          ["出力A", "DISPLAY_OUT_A"],
+          ["出力B", "DISPLAY_OUT_B"],
+          ["出力C", "DISPLAY_OUT_C"]
+        ]), "MODE")
+        .appendField("に設定");
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour('#9966FF');
+      this.setTooltip("LCD表示モードを選択します");
+    }
+  };
+  
+  // ユーザー表示設定ブロック（RCX2のみ）
+  Blockly.Blocks['set_user_display'] = {
+    init: function() {
+      this.appendValueInput("VALUE")
+        .setCheck(null)
+        .appendField("LCDに");
+      this.appendDummyInput()
+        .appendField("を小数点");
+      this.appendValueInput("PRECISION")
+        .setCheck("Number");
+      this.appendDummyInput()
+        .appendField("桁で表示");
+      this.setInputsInline(true);
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour('#9966FF');
+      this.setTooltip("LCDにユーザー定義の値を表示します（RCX2のみ）");
+    }
+  };
+  
   // 待機ブロック
   Blockly.Blocks['wait'] = {
     init: function() {
