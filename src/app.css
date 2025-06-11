@@ -11,6 +11,27 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  /* カスタムプロパティ */
+  --header-bg: #1e2329;
+  --header-secondary-bg: #2b303b;
+  --primary-color: #3498db;
+  --primary-hover: #2980b9;
+  --success-color: #27ae60;
+  --success-hover: #219a52;
+  --danger-color: #e74c3c;
+  --danger-hover: #c0392b;
+  --purple-color: #9b59b6;
+  --purple-hover: #8e44ad;
+  --content-bg: #f5f5f5;
+  --toolbar-bg: #ffffff;
+  --border-color: #e0e0e0;
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
 }
 
 * {
@@ -28,49 +49,138 @@ body {
   height: 100vh;
 }
 
-/* Toolbar styles */
-.section-label {
-  font-weight: bold;
-  color: #555;
-  margin-right: 0.5rem;
-  font-size: 0.9rem;
+/* スムーズなトランジション */
+* {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* フォーカススタイル */
+*:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* ボタンのリセット */
+button {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* 選択時のハイライト色 */
+::selection {
+  background-color: rgba(52, 152, 219, 0.3);
+  color: inherit;
+}
+
+/* スクロールバーのスタイリング */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 5px;
+  transition: background var(--transition-fast);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* アニメーション */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(52, 152, 219, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 152, 219, 0);
+  }
+}
+
+/* ユーティリティクラス */
+.fade-in {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.slide-in {
+  animation: slideIn 0.3s ease forwards;
+}
+
+/* ツールバーセクションの区切り線 */
 .toolbar-section {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  padding-right: 1rem;
-  border-right: 1px solid #d0d0d0;
+  position: relative;
+  padding-right: 1.5rem;
 }
 
-.toolbar-section:last-child {
-  border-right: none;
+.toolbar-section:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 24px;
+  background-color: var(--border-color);
 }
 
 /* Blockly styles */
 .blocklyToolboxDiv {
   background-color: #f8f8f8 !important;
+  border-right: 1px solid var(--border-color) !important;
 }
 
 .blocklyTreeRow {
   padding: 8px 16px !important;
-  margin: 2px 0 !important;
-  border-radius: 4px !important;
-  transition: all 0.2s ease !important;
+  margin: 2px 4px !important;
+  border-radius: 6px !important;
+  transition: all var(--transition-fast) !important;
 }
 
 .blocklyTreeRow:hover {
-  background-color: rgba(0, 0, 0, 0.1) !important;
+  background-color: rgba(52, 152, 219, 0.1) !important;
 }
 
 .blocklyTreeLabel {
   font-weight: 500 !important;
   font-size: 14px !important;
+  color: var(--text-primary) !important;
 }
 
 .blocklyTreeSelected {
-  background-color: rgba(0, 0, 0, 0.2) !important;
+  background-color: rgba(52, 152, 219, 0.2) !important;
+  color: var(--primary-color) !important;
 }
 
 /* Ensure proper rendering of blocks */
@@ -87,6 +197,7 @@ body {
 .blocklyEditableText > rect {
   fill: rgba(255, 255, 255, 0.95) !important;
   stroke: rgba(0, 0, 0, 0.2) !important;
+  rx: 4 !important;
 }
 
 .blocklyEditableText > text,
@@ -105,13 +216,14 @@ body {
   stroke: #ff0 !important;
   stroke-width: 4px !important;
   fill: none !important;
+  filter: drop-shadow(0 0 3px rgba(255, 255, 0, 0.5)) !important;
 }
 
 .blocklyInsertionMarker > .blocklyPath {
   fill-opacity: 0.5 !important;
 }
 
-/* Orphaned blocks styling - similar to nqc-blockly-full.html */
+/* Orphaned blocks styling */
 .orphaned-block .blocklyPath {
   fill-opacity: 0.5 !important;
   stroke: #999999 !important;
@@ -169,4 +281,28 @@ body {
 .orphaned-block .blocklyEditableText > text,
 .orphaned-child-block .blocklyEditableText > text {
   fill-opacity: 0.8 !important;
+}
+
+/* レスポンシブフォントサイズ */
+@media (max-width: 768px) {
+  :root {
+    font-size: 14px;
+  }
+  
+  .blocklyTreeLabel {
+    font-size: 13px !important;
+  }
+}
+
+/* 印刷スタイル */
+@media print {
+  .toolbar,
+  .code-panel,
+  footer {
+    display: none !important;
+  }
+  
+  .workspace-container {
+    width: 100% !important;
+  }
 }
