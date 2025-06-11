@@ -28,6 +28,26 @@ body {
   height: 100vh;
 }
 
+/* Toolbar styles */
+.section-label {
+  font-weight: bold;
+  color: #555;
+  margin-right: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.toolbar-section {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding-right: 1rem;
+  border-right: 1px solid #d0d0d0;
+}
+
+.toolbar-section:last-child {
+  border-right: none;
+}
+
 /* Blockly styles */
 .blocklyToolboxDiv {
   background-color: #f8f8f8 !important;
