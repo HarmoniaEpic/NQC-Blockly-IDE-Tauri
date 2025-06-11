@@ -217,14 +217,22 @@
   <div class="tools-grid">
     <!-- ファームウェアダウンロード -->
     <div class="tool-card">
-      <h3>🔧 ファームウェア管理</h3>
+      <div class="card-header">
+        <h3>🔧 ファームウェア管理</h3>
+      </div>
       <div class="tool-content">
-        <p>RCXファームウェアをダウンロードします。</p>
+        <p class="description">RCXファームウェアをダウンロードします。</p>
         <div class="firmware-selector">
-          <input type="text" readonly value={firmwarePath} placeholder="ファームウェアファイル (.lgo)" />
-          <button on:click={selectFirmware}>選択</button>
+          <input 
+            type="text" 
+            readonly 
+            value={firmwarePath} 
+            placeholder="ファームウェアファイル (.lgo)" 
+            class="file-input"
+          />
+          <button on:click={selectFirmware} class="secondary">選択</button>
         </div>
-        <button on:click={downloadFirmware} disabled={!firmwarePath || isLoading} class="primary">
+        <button on:click={downloadFirmware} disabled={!firmwarePath || isLoading} class="primary full-width">
           ファームウェアをダウンロード
         </button>
       </div>
@@ -232,15 +240,18 @@
     
     <!-- バッテリー情報 -->
     <div class="tool-card">
-      <h3>🔋 バッテリー情報</h3>
+      <div class="card-header">
+        <h3>🔋 バッテリー情報</h3>
+      </div>
       <div class="tool-content">
-        <p>RCXのバッテリー電圧を確認します。</p>
+        <p class="description">RCXのバッテリー電圧を確認します。</p>
         {#if batteryLevel}
           <div class="info-display">
-            バッテリー電圧: <strong>{batteryLevel}</strong>
+            <span class="info-label">バッテリー電圧:</span>
+            <span class="info-value">{batteryLevel}</span>
           </div>
         {/if}
-        <button on:click={getBatteryLevel} disabled={isLoading}>
+        <button on:click={getBatteryLevel} disabled={isLoading} class="full-width">
           バッテリーレベルを取得
         </button>
       </div>
@@ -248,11 +259,13 @@
     
     <!-- 時刻設定 -->
     <div class="tool-card">
-      <h3>🕐 時刻設定</h3>
+      <div class="card-header">
+        <h3>🕐 時刻設定</h3>
+      </div>
       <div class="tool-content">
-        <p>RCXの内部時計を設定します。</p>
-        <input type="time" bind:value={currentTime} />
-        <button on:click={setRCXTime} disabled={isLoading}>
+        <p class="description">RCXの内部時計を設定します。</p>
+        <input type="time" bind:value={currentTime} class="time-input" />
+        <button on:click={setRCXTime} disabled={isLoading} class="full-width">
           時刻を設定
         </button>
       </div>
@@ -260,13 +273,15 @@
     
     <!-- プログラムスロット -->
     <div class="tool-card">
-      <h3>📦 プログラムスロット</h3>
+      <div class="card-header">
+        <h3>📦 プログラムスロット</h3>
+      </div>
       <div class="tool-content">
-        <p>プログラムスロットの使用状況を確認します。</p>
+        <p class="description">プログラムスロットの使用状況を確認します。</p>
         {#if programSlots}
           <pre class="output-display">{programSlots}</pre>
         {/if}
-        <button on:click={getProgramSlots} disabled={isLoading}>
+        <button on:click={getProgramSlots} disabled={isLoading} class="full-width">
           スロット情報を取得
         </button>
       </div>
@@ -274,13 +289,15 @@
     
     <!-- データログ -->
     <div class="tool-card">
-      <h3>📊 データログ</h3>
+      <div class="card-header">
+        <h3>📊 データログ</h3>
+      </div>
       <div class="tool-content">
-        <p>RCXからデータログをアップロードします。</p>
+        <p class="description">RCXからデータログをアップロードします。</p>
         {#if datalog}
           <pre class="output-display">{datalog}</pre>
         {/if}
-        <button on:click={uploadDatalog} disabled={isLoading}>
+        <button on:click={uploadDatalog} disabled={isLoading} class="full-width">
           データログをアップロード
         </button>
       </div>
@@ -288,13 +305,15 @@
     
     <!-- メモリマップ -->
     <div class="tool-card">
-      <h3>🗺️ メモリマップ</h3>
+      <div class="card-header">
+        <h3>🗺️ メモリマップ</h3>
+      </div>
       <div class="tool-content">
-        <p>RCXのメモリ使用状況を確認します。</p>
+        <p class="description">RCXのメモリ使用状況を確認します。</p>
         {#if memoryMap}
           <pre class="output-display">{memoryMap}</pre>
         {/if}
-        <button on:click={getMemoryMap} disabled={isLoading}>
+        <button on:click={getMemoryMap} disabled={isLoading} class="full-width">
           メモリマップを取得
         </button>
       </div>
@@ -305,10 +324,10 @@
 <style>
   .system-tools {
     position: relative;
-    padding: 1rem;
+    padding: 1.5rem;
     height: 100%;
     overflow-y: auto;
-    background-color: #f5f5f5;
+    background-color: var(--content-bg, #f5f5f5);
   }
   
   .loading-overlay {
@@ -324,6 +343,7 @@
     justify-content: center;
     z-index: 100;
     color: white;
+    backdrop-filter: blur(2px);
   }
   
   .loading-spinner {
@@ -342,33 +362,53 @@
   
   .tools-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
   }
   
   .tool-card {
     background-color: white;
-    border-radius: 8px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
   }
   
-  .tool-card h3 {
-    margin: 0 0 1rem 0;
+  .tool-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+  }
+  
+  .card-header {
+    background-color: #f8f9fa;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+  }
+  
+  .card-header h3 {
+    margin: 0;
     color: #2c3e50;
     font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
   
   .tool-content {
+    padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 1rem;
   }
   
-  .tool-content p {
+  .description {
     margin: 0;
-    color: #666;
+    color: #6c757d;
     font-size: 0.9rem;
+    line-height: 1.5;
   }
   
   .firmware-selector {
@@ -376,65 +416,146 @@
     gap: 0.5rem;
   }
   
-  .firmware-selector input {
+  .file-input {
     flex: 1;
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background-color: #f8f8f8;
+    padding: 0.625rem 0.875rem;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    background-color: #f8f9fa;
+    font-size: 0.9rem;
+    color: #495057;
   }
   
   .info-display {
-    padding: 0.75rem;
-    background-color: #e8f4f8;
-    border-radius: 4px;
-    color: #2c3e50;
+    padding: 1rem;
+    background-color: #e7f3ff;
+    border-radius: 8px;
+    border: 1px solid #b8daff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .info-label {
+    color: #004085;
+    font-weight: 500;
+  }
+  
+  .info-value {
+    color: #004085;
+    font-weight: 600;
+    font-size: 1.1rem;
   }
   
   .output-display {
     max-height: 200px;
     overflow-y: auto;
-    padding: 0.75rem;
-    background-color: #f8f8f8;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-family: monospace;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
     font-size: 0.85rem;
     margin: 0;
+    color: #495057;
+    line-height: 1.5;
+  }
+  
+  .time-input {
+    padding: 0.625rem 0.875rem;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    font-size: 1rem;
+    width: 100%;
+    transition: border-color 0.2s ease;
+  }
+  
+  .time-input:focus {
+    outline: none;
+    border-color: var(--primary-color, #3498db);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
   }
   
   button {
-    padding: 0.5rem 1rem;
+    padding: 0.625rem 1.25rem;
     border: none;
-    border-radius: 4px;
-    background-color: #3498db;
-    color: white;
-    cursor: pointer;
+    border-radius: 6px;
     font-size: 0.9rem;
-    transition: background-color 0.2s;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: #f0f0f0;
+    color: #333;
   }
   
   button:hover:not(:disabled) {
-    background-color: #2980b9;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  button:active:not(:disabled) {
+    transform: translateY(0);
   }
   
   button:disabled {
-    background-color: #95a5a6;
+    opacity: 0.6;
     cursor: not-allowed;
   }
   
   button.primary {
-    background-color: #27ae60;
+    background-color: var(--primary-color, #3498db);
+    color: white;
   }
   
   button.primary:hover:not(:disabled) {
-    background-color: #219a52;
+    background-color: var(--primary-hover, #2980b9);
   }
   
-  input[type="time"] {
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
+  button.secondary {
+    background-color: #6c757d;
+    color: white;
+  }
+  
+  button.secondary:hover:not(:disabled) {
+    background-color: #5a6268;
+  }
+  
+  button.full-width {
+    width: 100%;
+  }
+  
+  /* スクロールバー */
+  .output-display::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .output-display::-webkit-scrollbar-track {
+    background: #e9ecef;
+    border-radius: 3px;
+  }
+  
+  .output-display::-webkit-scrollbar-thumb {
+    background: #adb5bd;
+    border-radius: 3px;
+  }
+  
+  .output-display::-webkit-scrollbar-thumb:hover {
+    background: #868e96;
+  }
+  
+  /* レスポンシブ対応 */
+  @media (max-width: 768px) {
+    .system-tools {
+      padding: 1rem;
+    }
+    
+    .tools-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    
+    .tool-content {
+      padding: 1rem;
+    }
   }
 </style>
