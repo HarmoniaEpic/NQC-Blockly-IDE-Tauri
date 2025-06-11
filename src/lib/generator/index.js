@@ -99,7 +99,7 @@ export function initializeNqcGenerator() {
     if (typeof code === 'string') {
       // インデントを追加
       code = code.split('\n').map(line => line ? nqcGenerator.INDENT + line : line).join('\n');
-      if (code) {
+      if (code && !code.endsWith('\n')) {
         code += '\n';
       }
     }
@@ -145,7 +145,11 @@ export function initializeNqcGenerator() {
       // ステートメントブロック
       const nextBlock = block.nextConnection && block.nextConnection.targetBlock();
       let nextCode = nqcGenerator.blockToCode(nextBlock);
-      if (typeof nextCode === 'string') {
+      if (typeof nextCode === 'string' && nextCode) {
+        // 空行の重複を避ける
+        if (code.endsWith('\n') && nextCode.startsWith('\n')) {
+          nextCode = nextCode.substring(1);
+        }
         return code + nextCode;
       }
       return code;
@@ -469,31 +473,17 @@ export function initializeNqcGenerator() {
   nqcGenerator['controls_if'] = function(block) {
     let n = 0;
     let code = '', branchCode, conditionCode;
-    if (nqcGenerator.STATEMENT_PREFIX) {
-      // Automatic prefix insertion is switched off for this block.  Add manually.
-      code += nqcGenerator.injectId(nqcGenerator.STATEMENT_PREFIX, block);
-    }
     do {
       conditionCode = nqcGenerator.valueToCode(block, 'IF' + n,
           nqcGenerator.ORDER_NONE) || 'false';
       branchCode = nqcGenerator.statementToCode(block, 'DO' + n);
-      if (nqcGenerator.STATEMENT_SUFFIX) {
-        branchCode = nqcGenerator.prefixLines(
-            nqcGenerator.injectId(nqcGenerator.STATEMENT_SUFFIX, block),
-            nqcGenerator.INDENT) + branchCode;
-      }
       code += (n > 0 ? 'else ' : '') +
           'if (' + conditionCode + ')\n{\n' + branchCode + '}\n';
       n++;
     } while (block.getInput('IF' + n));
 
-    if (block.getInput('ELSE') || nqcGenerator.STATEMENT_SUFFIX) {
+    if (block.getInput('ELSE')) {
       branchCode = nqcGenerator.statementToCode(block, 'ELSE');
-      if (nqcGenerator.STATEMENT_SUFFIX) {
-        branchCode = nqcGenerator.prefixLines(
-            nqcGenerator.injectId(nqcGenerator.STATEMENT_SUFFIX, block),
-            nqcGenerator.INDENT) + branchCode;
-      }
       code += 'else\n{\n' + branchCode + '}\n';
     }
     return code;
