@@ -239,6 +239,24 @@ export function initializeNqcGenerator() {
     return `SetPower(${motors}, ${power});\n`;
   };
   
+  // モーター逆回転でON
+  nqcGenerator['motor_on_rev'] = function(block) {
+    const motors = block.getFieldValue('MOTORS');
+    return `OnRev(${motors});\n`;
+  };
+  
+  // モーターフロート
+  nqcGenerator['motor_float'] = function(block) {
+    const motors = block.getFieldValue('MOTORS');
+    return `Float(${motors});\n`;
+  };
+  
+  // モーター方向反転
+  nqcGenerator['motor_toggle'] = function(block) {
+    const motors = block.getFieldValue('MOTORS');
+    return `Toggle(${motors});\n`;
+  };
+  
   // センサー
   nqcGenerator['set_sensor'] = function(block) {
     const port = block.getFieldValue('PORT');
@@ -260,6 +278,20 @@ export function initializeNqcGenerator() {
   nqcGenerator['clear_sensor'] = function(block) {
     const port = block.getFieldValue('PORT');
     return `ClearSensor(SENSOR_${port});\n`;
+  };
+  
+  // センサー生値
+  nqcGenerator['sensor_value_raw'] = function(block) {
+    const port = block.getFieldValue('PORT');
+    const portNum = parseInt(port) - 1;
+    return [`SensorValueRaw(${portNum})`, nqcGenerator.ORDER_ATOMIC];
+  };
+  
+  // センサーモード設定
+  nqcGenerator['set_sensor_mode'] = function(block) {
+    const port = block.getFieldValue('PORT');
+    const mode = block.getFieldValue('MODE');
+    return `SetSensorMode(SENSOR_${port}, ${mode});\n`;
   };
   
   // タイマー
@@ -307,6 +339,29 @@ export function initializeNqcGenerator() {
   nqcGenerator['wait'] = function(block) {
     const duration = nqcGenerator.valueToCode(block, 'DURATION', nqcGenerator.ORDER_ATOMIC) || '100';
     return `Wait(${duration});\n`;
+  };
+  
+  // =========================
+  // 制御構造の拡張
+  // =========================
+  
+  // do-whileループ
+  nqcGenerator['do_while_loop'] = function(block) {
+    const statements = nqcGenerator.statementToCode(block, 'DO');
+    const condition = nqcGenerator.valueToCode(block, 'CONDITION', nqcGenerator.ORDER_ATOMIC) || 'false';
+    
+    return `do\n{\n${statements}}\nwhile (${condition});\n`;
+  };
+  
+  // break文
+  nqcGenerator['break_statement'] = function(block) {
+    return 'break;\n';
+  };
+  
+  // untilマクロ
+  nqcGenerator['wait_until'] = function(block) {
+    const condition = nqcGenerator.valueToCode(block, 'CONDITION', nqcGenerator.ORDER_ATOMIC) || 'false';
+    return `until(${condition});\n`;
   };
   
   // 変数
@@ -479,6 +534,29 @@ export function initializeNqcGenerator() {
   nqcGenerator['add_to_datalog'] = function(block) {
     const value = nqcGenerator.valueToCode(block, 'VALUE', nqcGenerator.ORDER_ATOMIC) || '0';
     return `AddToDatalog(${value});\n`;
+  };
+  
+  // =========================
+  // 楽しさを増す機能
+  // =========================
+  
+  // 乱数生成
+  nqcGenerator['random_number'] = function(block) {
+    const max = nqcGenerator.valueToCode(block, 'MAX', nqcGenerator.ORDER_ATOMIC) || '10';
+    return [`Random(${max})`, nqcGenerator.ORDER_ATOMIC];
+  };
+  
+  // システムサウンド再生
+  nqcGenerator['play_system_sound'] = function(block) {
+    const soundId = block.getFieldValue('SOUND_ID');
+    return `PlaySound(${soundId});\n`;
+  };
+  
+  // 音楽的な音階
+  nqcGenerator['play_musical_note'] = function(block) {
+    const frequency = block.getFieldValue('NOTE');
+    const duration = block.getFieldValue('DURATION');
+    return `PlayTone(${frequency}, ${duration});\n`;
   };
   
   // 制御構造
