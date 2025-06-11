@@ -278,109 +278,121 @@
 
 <main>
   <header>
-    <h1>🧱 NQC Blockly IDE for LEGO RCX</h1>
-    <div class="header-tabs">
-      <button 
-        class="tab-button" 
-        class:active={activeTab === 'programming'}
-        on:click={() => activeTab = 'programming'}
-      >
-        プログラミング
-      </button>
-      <button 
-        class="tab-button" 
-        class:active={activeTab === 'system'}
-        on:click={() => activeTab = 'system'}
-      >
-        システムツール
-      </button>
+    <div class="header-content">
+      <h1>🧱 NQC Blockly IDE for LEGO RCX</h1>
+      <div class="connection-indicator">
+        <span class="connection-status" class:connected={connectionStatus}>
+          <span class="status-dot"></span>
+          {connectionStatus ? '接続済み' : '未接続'}
+        </span>
+      </div>
     </div>
-    <div class="status">
-      <span class="connection-status" class:connected={connectionStatus}>
-        {connectionStatus ? '接続済み' : '未接続'}
-      </span>
+    
+    <div class="tab-container">
+      <div class="tabs">
+        <button 
+          class="tab" 
+          class:active={activeTab === 'programming'}
+          on:click={() => activeTab = 'programming'}
+        >
+          <span class="tab-icon">📝</span>
+          <span class="tab-text">プログラミング</span>
+          <span class="tab-indicator"></span>
+        </button>
+        <button 
+          class="tab" 
+          class:active={activeTab === 'system'}
+          on:click={() => activeTab = 'system'}
+        >
+          <span class="tab-icon">⚙️</span>
+          <span class="tab-text">システムツール</span>
+          <span class="tab-indicator"></span>
+        </button>
+      </div>
     </div>
   </header>
 
-  {#if activeTab === 'programming'}
-    <nav class="toolbar">
-      <div class="toolbar-section">
-        <span class="section-label">ファイル:</span>
-        <button on:click={clearWorkspace}>クリア</button>
-        <button on:click={saveProject}>保存</button>
-        <button on:click={loadProject}>読み込み</button>
-        <button on:click={exportNqcCode}>NQCエクスポート</button>
-      </div>
-      
-      <div class="toolbar-section">
-        <span class="section-label">サンプル:</span>
-        <button on:click={() => blocklyWorkspace.loadSample(1)} class="sample-button">
-          タッチセンサー
-        </button>
-        <button on:click={() => blocklyWorkspace.loadSample(2)} class="sample-button">
-          ライントレース
-        </button>
-        <button on:click={() => blocklyWorkspace.loadSample(3)} class="sample-button">
-          音楽演奏
-        </button>
-        <button on:click={() => blocklyWorkspace.loadSample(4)} class="sample-button">
-          データログ
-        </button>
-      </div>
-      
-      <div class="toolbar-section">
-        <span class="section-label">実行制御:</span>
-        <button on:click={compileCode}>コンパイル</button>
-        <button on:click={downloadToRCX} class="primary">🚀 RCXに転送</button>
-        <button on:click={() => controlRCX('run')}>実行</button>
-        <button on:click={() => controlRCX('stop')}>停止</button>
-        <button on:click={() => controlRCX('clear')} class="danger">クリア</button>
-        
-        <span class="section-label">接続設定:</span>
-        <select bind:value={selectedPort}>
-          {#each serialPorts as port}
-            <option value={port.path}>{port.name}</option>
-          {/each}
-        </select>
-        
-        <select bind:value={targetType}>
-          <option value="RCX">RCX</option>
-          <option value="RCX2">RCX2</option>
-          <option value="CM">CyberMaster</option>
-          <option value="Scout">Scout</option>
-        </select>
-        
-        <select bind:value={programSlot}>
-          <option value={1}>スロット 1</option>
-          <option value={2}>スロット 2</option>
-          <option value={3}>スロット 3</option>
-          <option value={4}>スロット 4</option>
-          <option value={5}>スロット 5</option>
-        </select>
-      </div>
-    </nav>
-
-    <div class="workspace-container">
-      <BlocklyWorkspace 
-        bind:this={blocklyWorkspace}
-        on:codeUpdate={handleCodeUpdate}
-      />
-      
-      <aside class="code-panel">
-        <div class="code-header">
-          <h3>生成されたNQCコード</h3>
+  <div class="content-area">
+    {#if activeTab === 'programming'}
+      <nav class="toolbar">
+        <div class="toolbar-section">
+          <span class="section-label">ファイル:</span>
+          <button on:click={clearWorkspace}>クリア</button>
+          <button on:click={saveProject}>保存</button>
+          <button on:click={loadProject}>読み込み</button>
+          <button on:click={exportNqcCode}>NQCエクスポート</button>
         </div>
-        <CodeViewer code={generatedCode} errors={codeErrors} />
-      </aside>
-    </div>
-  {:else if activeTab === 'system'}
-    <div class="system-tools-container">
-      <SystemTools 
-        {nqcPath} 
-        {selectedPort}
-      />
-    </div>
-  {/if}
+        
+        <div class="toolbar-section">
+          <span class="section-label">サンプル:</span>
+          <button on:click={() => blocklyWorkspace.loadSample(1)} class="sample-button">
+            タッチセンサー
+          </button>
+          <button on:click={() => blocklyWorkspace.loadSample(2)} class="sample-button">
+            ライントレース
+          </button>
+          <button on:click={() => blocklyWorkspace.loadSample(3)} class="sample-button">
+            音楽演奏
+          </button>
+          <button on:click={() => blocklyWorkspace.loadSample(4)} class="sample-button">
+            データログ
+          </button>
+        </div>
+        
+        <div class="toolbar-section">
+          <span class="section-label">実行制御:</span>
+          <button on:click={compileCode}>コンパイル</button>
+          <button on:click={downloadToRCX} class="primary">🚀 RCXに転送</button>
+          <button on:click={() => controlRCX('run')}>実行</button>
+          <button on:click={() => controlRCX('stop')}>停止</button>
+          <button on:click={() => controlRCX('clear')} class="danger">クリア</button>
+          
+          <span class="section-label">接続設定:</span>
+          <select bind:value={selectedPort}>
+            {#each serialPorts as port}
+              <option value={port.path}>{port.name}</option>
+            {/each}
+          </select>
+          
+          <select bind:value={targetType}>
+            <option value="RCX">RCX</option>
+            <option value="RCX2">RCX2</option>
+            <option value="CM">CyberMaster</option>
+            <option value="Scout">Scout</option>
+          </select>
+          
+          <select bind:value={programSlot}>
+            <option value={1}>スロット 1</option>
+            <option value={2}>スロット 2</option>
+            <option value={3}>スロット 3</option>
+            <option value={4}>スロット 4</option>
+            <option value={5}>スロット 5</option>
+          </select>
+        </div>
+      </nav>
+
+      <div class="workspace-container">
+        <BlocklyWorkspace 
+          bind:this={blocklyWorkspace}
+          on:codeUpdate={handleCodeUpdate}
+        />
+        
+        <aside class="code-panel">
+          <div class="code-header">
+            <h3>生成されたNQCコード</h3>
+          </div>
+          <CodeViewer code={generatedCode} errors={codeErrors} />
+        </aside>
+      </div>
+    {:else if activeTab === 'system'}
+      <div class="system-tools-container">
+        <SystemTools 
+          {nqcPath} 
+          {selectedPort}
+        />
+      </div>
+    {/if}
+  </div>
   
   <footer>
     <div class="settings">
@@ -415,62 +427,142 @@
   }
   
   header {
-    background-color: #2c3e50;
+    background-color: #1e2329;
     color: white;
-    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .header-content {
+    padding: 0.75rem 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 1rem;
   }
   
   h1 {
     margin: 0;
-    font-size: 1.5rem;
+    font-size: 1.4rem;
+    font-weight: 600;
   }
   
-  .header-tabs {
+  .connection-indicator {
     display: flex;
-    gap: 0.5rem;
-  }
-  
-  .tab-button {
-    padding: 0.5rem 1rem;
-    background-color: transparent;
-    color: #ecf0f1;
-    border: 1px solid #34495e;
-    border-radius: 4px 4px 0 0;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  
-  .tab-button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
-  
-  .tab-button.active {
-    background-color: #34495e;
-    border-bottom-color: #34495e;
+    align-items: center;
   }
   
   .connection-status {
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    background-color: #e74c3c;
-    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    background-color: rgba(255, 255, 255, 0.1);
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #dc3545;
+    transition: all 0.3s ease;
   }
   
   .connection-status.connected {
-    background-color: #27ae60;
+    background-color: rgba(40, 167, 69, 0.2);
+  }
+  
+  .connection-status.connected .status-dot {
+    background-color: #28a745;
+    box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.3);
+  }
+  
+  /* タブコンテナ */
+  .tab-container {
+    background-color: #2b303b;
+    padding: 0 1.5rem;
+  }
+  
+  .tabs {
+    display: flex;
+    gap: 0.25rem;
+    height: 44px;
+    align-items: flex-end;
+  }
+  
+  /* タブのスタイル */
+  .tab {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background-color: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    border: none;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    height: 40px;
+    margin-bottom: 0;
+  }
+  
+  .tab:hover:not(.active) {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.9);
+  }
+  
+  .tab.active {
+    background-color: #f5f5f5;
+    color: #2b303b;
+    font-weight: 600;
+  }
+  
+  .tab-icon {
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+  
+  .tab-text {
+    position: relative;
+  }
+  
+  /* タブインジケーター */
+  .tab-indicator {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: transparent;
+    transition: all 0.3s ease;
+  }
+  
+  .tab.active .tab-indicator {
+    background-color: #3498db;
+  }
+  
+  /* コンテンツエリア */
+  .content-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #f5f5f5;
+    overflow: hidden;
   }
   
   .toolbar {
-    background-color: #ecf0f1;
-    padding: 0.5rem 1rem;
+    background-color: #ffffff;
+    padding: 0.75rem 1rem;
     display: flex;
     gap: 2rem;
     flex-wrap: wrap;
-    border-bottom: 1px solid #bdc3c7;
+    border-bottom: 1px solid #e0e0e0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   }
   
   .toolbar-section {
@@ -482,28 +574,38 @@
   button {
     padding: 0.5rem 1rem;
     border: none;
-    border-radius: 4px;
-    background-color: #3498db;
-    color: white;
+    border-radius: 6px;
+    background-color: #f0f0f0;
+    color: #333;
     cursor: pointer;
     font-size: 0.9rem;
-    transition: background-color 0.2s;
+    font-weight: 500;
+    transition: all 0.2s ease;
   }
   
   button:hover {
-    background-color: #2980b9;
+    background-color: #e0e0e0;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  button:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
   
   button.primary {
-    background-color: #27ae60;
+    background-color: #3498db;
+    color: white;
   }
   
   button.primary:hover {
-    background-color: #219a52;
+    background-color: #2980b9;
   }
   
   button.danger {
     background-color: #e74c3c;
+    color: white;
   }
   
   button.danger:hover {
@@ -512,6 +614,7 @@
   
   .sample-button {
     background-color: #9b59b6;
+    color: white;
   }
   
   .sample-button:hover {
@@ -521,8 +624,20 @@
   select, input[type="text"] {
     padding: 0.5rem;
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 6px;
     font-size: 0.9rem;
+    background-color: white;
+    transition: border-color 0.2s ease;
+  }
+  
+  select:hover, input[type="text"]:hover {
+    border-color: #bbb;
+  }
+  
+  select:focus, input[type="text"]:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
   }
   
   .workspace-container {
@@ -557,9 +672,10 @@
   }
   
   footer {
-    background-color: #ecf0f1;
-    padding: 0.5rem 1rem;
-    border-top: 1px solid #bdc3c7;
+    background-color: #ffffff;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid #e0e0e0;
+    box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
   }
   
   .settings {
@@ -573,5 +689,45 @@
     align-items: center;
     gap: 0.5rem;
     font-size: 0.9rem;
+    color: #555;
+  }
+  
+  .section-label {
+    font-weight: 600;
+    color: #666;
+    margin-right: 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  /* レスポンシブ対応 */
+  @media (max-width: 1200px) {
+    .code-panel {
+      width: 350px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .header-content {
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: flex-start;
+    }
+    
+    .tabs {
+      gap: 0;
+    }
+    
+    .tab {
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+    }
+    
+    .toolbar {
+      gap: 1rem;
+    }
+    
+    .toolbar-section {
+      flex-wrap: wrap;
+    }
   }
 </style>
