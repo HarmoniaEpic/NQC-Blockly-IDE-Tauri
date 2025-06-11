@@ -1,9 +1,10 @@
 <script>
   import { onMount } from 'svelte';
   import { invoke } from '@tauri-apps/api/core';
-  import { message, open, save } from '@tauri-apps/plugin-dialog';
+  import { message, open, save, confirm } from '@tauri-apps/plugin-dialog';
   import { readTextFile, writeTextFile } from '@tauri-apps/plugin-fs';
   import BlocklyWorkspace from './lib/BlocklyWorkspace.svelte';
+  import CodeViewer from './lib/CodeViewer.svelte';
   
   let blocklyWorkspace;
   let generatedCode = '';
@@ -13,6 +14,7 @@
   let targetType = 'RCX';
   let programSlot = 1;
   let connectionStatus = false;
+  let codeErrors = [];
 
   onMount(async () => {
     await loadSerialPorts();
@@ -25,12 +27,18 @@
         selectedPort = serialPorts[0].path;
       }
     } catch (error) {
-      await message(error.toString(), { title: 'エラー', kind: 'error' });
+      console.error('Load serial ports error:', error);
+      await message(`シリアルポートの取得エラー: ${error}`, { 
+        title: 'エラー', 
+        kind: 'error' 
+      });
     }
   }
 
   function handleCodeUpdate(event) {
     generatedCode = event.detail.code;
+    // コードが更新されたらエラーをクリア
+    codeErrors = [];
   }
 
   async function compileCode() {
@@ -43,13 +51,47 @@
       });
 
       if (result.success) {
-        await message('コンパイル成功', { title: '成功', kind: 'info' });
+        codeErrors = []; // エラーをクリア
+        await message('コンパイル成功', { 
+          title: '成功', 
+          kind: 'info' 
+        });
       } else {
-        await message(`コンパイルエラー:\n${result.stderr}`, { title: 'エラー', kind: 'error' });
+        // エラーを解析
+        codeErrors = parseNqcErrors(result.stderr);
+        await message(`コンパイルエラー:\n${result.stderr}`, { 
+          title: 'エラー', 
+          kind: 'error' 
+        });
       }
     } catch (error) {
-      await message(error.toString(), { title: 'エラー', kind: 'error' });
+      console.error('Compile error:', error);
+      await message(`コンパイルエラー: ${error}`, { 
+        title: 'エラー', 
+        kind: 'error' 
+      });
     }
+  }
+  
+  function parseNqcErrors(stderr) {
+    const lines = stderr.split('\n');
+    const errors = [];
+    const errorPattern = /^(.+\.nqc):(\d+):(\d+):\s*(error|warning):\s*(.+)$/;
+    
+    for (const line of lines) {
+      const match = line.match(errorPattern);
+      if (match) {
+        errors.push({
+          filename: match[1],
+          line: parseInt(match[2]),
+          column: parseInt(match[3]),
+          type: match[4],
+          message: match[5]
+        });
+      }
+    }
+    
+    return errors;
   }
 
   async function downloadToRCX() {
@@ -64,12 +106,25 @@
 
       if (result.success) {
         connectionStatus = true;
-        await message('RCXへの転送成功', { title: '成功', kind: 'info' });
+        codeErrors = []; // 転送成功時はエラーをクリア
+        await message('RCXへの転送成功', { 
+          title: '成功', 
+          kind: 'info' 
+        });
       } else {
-        await message(`転送エラー:\n${result.stderr}`, { title: 'エラー', kind: 'error' });
+        // エラーを解析
+        codeErrors = parseNqcErrors(result.stderr);
+        await message(`転送エラー:\n${result.stderr}`, { 
+          title: 'エラー', 
+          kind: 'error' 
+        });
       }
     } catch (error) {
-      await message(error.toString(), { title: 'エラー', kind: 'error' });
+      console.error('Download error:', error);
+      await message(`転送エラー: ${error}`, { 
+        title: 'エラー', 
+        kind: 'error' 
+      });
     }
   }
 
@@ -82,12 +137,22 @@
       });
 
       if (result.success) {
-        await message(`${action}コマンド実行成功`, { title: '成功', kind: 'info' });
+        await message(`${action}コマンド実行成功`, { 
+          title: '成功', 
+          kind: 'info' 
+        });
       } else {
-        await message(`実行エラー:\n${result.stderr}`, { title: 'エラー', kind: 'error' });
+        await message(`実行エラー:\n${result.stderr}`, { 
+          title: 'エラー', 
+          kind: 'error' 
+        });
       }
     } catch (error) {
-      await message(error.toString(), { title: 'エラー', kind: 'error' });
+      console.error('Control RCX error:', error);
+      await message(`実行エラー: ${error}`, { 
+        title: 'エラー', 
+        kind: 'error' 
+      });
     }
   }
 
@@ -97,7 +162,8 @@
         filters: [{
           name: 'NQC Project',
           extensions: ['nqcproj']
-        }]
+        }],
+        defaultPath: 'project.nqcproj'
       });
       
       if (filePath) {
@@ -113,10 +179,17 @@
         };
         
         await writeTextFile(filePath, JSON.stringify(projectData, null, 2));
-        await message('プロジェクトを保存しました', { title: '成功', kind: 'info' });
+        await message('プロジェクトを保存しました', { 
+          title: '成功', 
+          kind: 'info' 
+        });
       }
     } catch (error) {
-      await message(error.toString(), { title: 'エラー', kind: 'error' });
+      console.error('Save project error:', error);
+      await message(`保存エラー: ${error}`, { 
+        title: 'エラー', 
+        kind: 'error' 
+      });
     }
   }
 
@@ -142,10 +215,19 @@
           selectedPort = projectData.settings.selectedPort || selectedPort;
         }
         
-        await message('プロジェクトを読み込みました', { title: '成功', kind: 'info' });
+        codeErrors = []; // プロジェクト読み込み時はエラーをクリア
+        
+        await message('プロジェクトを読み込みました', { 
+          title: '成功', 
+          kind: 'info' 
+        });
       }
     } catch (error) {
-      await message(error.toString(), { title: 'エラー', kind: 'error' });
+      console.error('Load project error:', error);
+      await message(`読み込みエラー: ${error}`, { 
+        title: 'エラー', 
+        kind: 'error' 
+      });
     }
   }
 
@@ -155,28 +237,39 @@
         filters: [{
           name: 'NQC Source',
           extensions: ['nqc']
-        }]
+        }],
+        defaultPath: 'program.nqc'
       });
       
       if (filePath) {
         await writeTextFile(filePath, generatedCode);
-        await message('NQCコードをエクスポートしました', { title: '成功', kind: 'info' });
+        await message('NQCコードをエクスポートしました', { 
+          title: '成功', 
+          kind: 'info' 
+        });
       }
     } catch (error) {
-      await message(error.toString(), { title: 'エラー', kind: 'error' });
+      console.error('Export error:', error);
+      await message(`エクスポートエラー: ${error}`, { 
+        title: 'エラー', 
+        kind: 'error' 
+      });
     }
   }
 
   async function clearWorkspace() {
-    const confirmed = await message('ワークスペースをクリアしますか？', {
-      title: '確認',
-      kind: 'warning',
-      okLabel: 'はい',
-      cancelLabel: 'いいえ'
-    });
-    
-    if (confirmed) {
-      blocklyWorkspace.clearWorkspace();
+    try {
+      const confirmed = await confirm('ワークスペースをクリアしますか？', {
+        title: '確認',
+        kind: 'warning'
+      });
+      
+      if (confirmed) {
+        blocklyWorkspace.clearWorkspace();
+        codeErrors = []; // エラーもクリア
+      }
+    } catch (error) {
+      console.error('Clear workspace error:', error);
     }
   }
 </script>
@@ -256,7 +349,7 @@
       <div class="code-header">
         <h3>生成されたNQCコード</h3>
       </div>
-      <pre class="generated-code">{generatedCode || '// Blocklyでプログラムを作成してください'}</pre>
+      <CodeViewer code={generatedCode} errors={codeErrors} />
     </aside>
   </div>
   
@@ -394,17 +487,6 @@
   .code-header h3 {
     margin: 0;
     font-size: 1rem;
-  }
-  
-  .generated-code {
-    flex: 1;
-    margin: 0;
-    padding: 1rem;
-    color: #d4d4d4;
-    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-    font-size: 14px;
-    overflow: auto;
-    white-space: pre-wrap;
   }
   
   footer {
