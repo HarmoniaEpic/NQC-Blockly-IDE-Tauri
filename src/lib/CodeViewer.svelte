@@ -461,7 +461,7 @@
     flex: 1;
     margin: 0;
     padding: 1rem;
-    overflow-x: auto;
+    overflow: visible;
     line-height: 1.5;
     font-size: 14px;
     background-color: transparent !important;
