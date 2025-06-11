@@ -141,7 +141,8 @@
         pattern: /\b(?:task|sub)\s+[\w_]+\s*\(/,
         inside: {
           'keyword': /\b(?:task|sub)\b/,
-          'function': /[\w_]+(?=\s*\()/
+          'function': /[\w_]+(?=\s*\()/,
+          'punctuation': /\(/  // 括弧を明示的に処理
         }
       },
       'keyword': new RegExp(
