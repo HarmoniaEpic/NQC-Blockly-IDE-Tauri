@@ -2,6 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 use std::process::Command;
+use std::fs;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct CompileResult {
@@ -37,7 +38,7 @@ async fn compile_nqc(
     // Create temporary file for NQC code
     let temp_dir = std::env::temp_dir();
     let temp_file = temp_dir.join("temp_program.nqc");
-    std::fs::write(&temp_file, code)
+    fs::write(&temp_file, code)
         .map_err(|e| format!("Failed to write temp file: {}", e))?;
 
     // Build NQC command
@@ -49,7 +50,7 @@ async fn compile_nqc(
         .map_err(|e| format!("Failed to execute NQC: {}", e))?;
 
     // Clean up temp file
-    let _ = std::fs::remove_file(temp_file);
+    let _ = fs::remove_file(temp_file);
 
     Ok(CompileResult {
         success: output.status.success(),
@@ -68,7 +69,7 @@ async fn download_to_rcx(
 ) -> Result<CompileResult, String> {
     let temp_dir = std::env::temp_dir();
     let temp_file = temp_dir.join("temp_program.nqc");
-    std::fs::write(&temp_file, code)
+    fs::write(&temp_file, code)
         .map_err(|e| format!("Failed to write temp file: {}", e))?;
 
     let output = Command::new(&nqc_path)
@@ -81,7 +82,7 @@ async fn download_to_rcx(
         .output()
         .map_err(|e| format!("Failed to execute NQC: {}", e))?;
 
-    let _ = std::fs::remove_file(temp_file);
+    let _ = fs::remove_file(temp_file);
 
     Ok(CompileResult {
         success: output.status.success(),
@@ -125,6 +126,7 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_fs::init())
         .invoke_handler(tauri::generate_handler![
             get_serial_ports,
             compile_nqc,
