@@ -122,6 +122,119 @@ async fn control_rcx(
     })
 }
 
+#[tauri::command]
+async fn download_firmware(
+    nqc_path: String,
+    firmware_path: String,
+    serial_port: String,
+) -> Result<CompileResult, String> {
+    let output = Command::new(&nqc_path)
+        .arg(format!("-S{}", serial_port))
+        .arg("-firmware")
+        .arg(&firmware_path)
+        .output()
+        .map_err(|e| format!("Failed to execute NQC: {}", e))?;
+
+    Ok(CompileResult {
+        success: output.status.success(),
+        stdout: String::from_utf8_lossy(&output.stdout).to_string(),
+        stderr: String::from_utf8_lossy(&output.stderr).to_string(),
+    })
+}
+
+#[tauri::command]
+async fn get_battery_level(
+    nqc_path: String,
+    serial_port: String,
+) -> Result<CompileResult, String> {
+    let output = Command::new(&nqc_path)
+        .arg(format!("-S{}", serial_port))
+        .arg("-batterylevel")
+        .output()
+        .map_err(|e| format!("Failed to execute NQC: {}", e))?;
+
+    Ok(CompileResult {
+        success: output.status.success(),
+        stdout: String::from_utf8_lossy(&output.stdout).to_string(),
+        stderr: String::from_utf8_lossy(&output.stderr).to_string(),
+    })
+}
+
+#[tauri::command]
+async fn set_rcx_time(
+    nqc_path: String,
+    serial_port: String,
+    time: String,
+) -> Result<CompileResult, String> {
+    let output = Command::new(&nqc_path)
+        .arg(format!("-S{}", serial_port))
+        .arg("-time")
+        .arg(&time)
+        .output()
+        .map_err(|e| format!("Failed to execute NQC: {}", e))?;
+
+    Ok(CompileResult {
+        success: output.status.success(),
+        stdout: String::from_utf8_lossy(&output.stdout).to_string(),
+        stderr: String::from_utf8_lossy(&output.stderr).to_string(),
+    })
+}
+
+#[tauri::command]
+async fn upload_datalog(
+    nqc_path: String,
+    serial_port: String,
+) -> Result<CompileResult, String> {
+    let output = Command::new(&nqc_path)
+        .arg(format!("-S{}", serial_port))
+        .arg("-datalog")
+        .output()
+        .map_err(|e| format!("Failed to execute NQC: {}", e))?;
+
+    Ok(CompileResult {
+        success: output.status.success(),
+        stdout: String::from_utf8_lossy(&output.stdout).to_string(),
+        stderr: String::from_utf8_lossy(&output.stderr).to_string(),
+    })
+}
+
+#[tauri::command]
+async fn get_program_slots(
+    nqc_path: String,
+    serial_port: String,
+) -> Result<CompileResult, String> {
+    let output = Command::new(&nqc_path)
+        .arg(format!("-S{}", serial_port))
+        .arg("-pgm")
+        .arg("-")
+        .output()
+        .map_err(|e| format!("Failed to execute NQC: {}", e))?;
+
+    Ok(CompileResult {
+        success: output.status.success(),
+        stdout: String::from_utf8_lossy(&output.stdout).to_string(),
+        stderr: String::from_utf8_lossy(&output.stderr).to_string(),
+    })
+}
+
+#[tauri::command]
+async fn get_memory_map(
+    nqc_path: String,
+    serial_port: String,
+) -> Result<CompileResult, String> {
+    let output = Command::new(&nqc_path)
+        .arg(format!("-S{}", serial_port))
+        .arg("-map")
+        .output()
+        .map_err(|e| format!("Failed to execute NQC: {}", e))?;
+
+    Ok(CompileResult {
+        success: output.status.success(),
+        stdout: String::from_utf8_lossy(&output.stdout).to_string(),
+        stderr: String::from_utf8_lossy(&output.stderr).to_string(),
+    })
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
@@ -131,7 +244,13 @@ fn main() {
             get_serial_ports,
             compile_nqc,
             download_to_rcx,
-            control_rcx
+            control_rcx,
+            download_firmware,
+            get_battery_level,
+            set_rcx_time,
+            upload_datalog,
+            get_program_slots,
+            get_memory_map
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
