@@ -1,7 +1,6 @@
 <script>
   import { onMount, createEventDispatcher } from 'svelte';
   import * as Blockly from 'blockly';
-  import * as BlocklyXml from 'blockly/xml';
   import 'blockly/msg/ja';
   import { defineCustomBlocks } from './blocks';
   import { initializeNqcGenerator } from './generator';
@@ -46,13 +45,44 @@
     });
     
     // 変更時にコードを更新
-    workspace.addChangeListener(() => {
-      updateCode();
+    let isInitializing = true;
+    workspace.addChangeListener((event) => {
+      // 初期化中は特別な処理
+      if (isInitializing && event.type === Blockly.Events.BLOCK_CREATE) {
+        isInitializing = false;
+        setTimeout(() => updateCode(), 50);
+      } else {
+        updateCode();
+      }
     });
     
-    // 初期コード生成
-    updateCode();
+    // 初期状態で空のmainタスクを追加
+    addInitialMainTask();
+    
+    // 初期コード生成（レンダリング完了後に実行）
+    requestAnimationFrame(() => {
+      updateCode();
+      // 念のため、もう一度実行
+      setTimeout(() => {
+        updateCode();
+      }, 200);
+    });
   });
+  
+  function addInitialMainTask() {
+    if (!workspace) return;
+    
+    // 初期状態でmainタスクブロックを追加（Serialization API使用）
+    const mainTaskBlock = workspace.newBlock('task_main');
+    mainTaskBlock.initSvg();
+    mainTaskBlock.render();
+    mainTaskBlock.moveBy(50, 50);
+    
+    // ブロック追加後、すぐにコード更新を実行
+    setTimeout(() => {
+      updateCode();
+    }, 0);
+  }
   
   function updateCode() {
     if (!workspace || !nqcGenerator) return;
@@ -68,6 +98,8 @@
   export function clearWorkspace() {
     if (workspace) {
       workspace.clear();
+      // クリア後、再度空のmainタスクを追加
+      addInitialMainTask();
       updateCode();
     }
   }
@@ -75,14 +107,12 @@
   export function getWorkspaceXml() {
     if (!workspace) return '';
     try {
-      // BlocklyXmlを使用
-      const xml = BlocklyXml.workspaceToDom(workspace);
-      return BlocklyXml.domToText(xml);
-    } catch (e) {
-      console.error('Error saving workspace:', e);
-      // フォールバック: serialization APIを使用
+      // Serialization APIを使用
       const state = Blockly.serialization.workspaces.save(workspace);
       return JSON.stringify(state);
+    } catch (e) {
+      console.error('Error saving workspace:', e);
+      return '';
     }
   }
   
@@ -90,9 +120,17 @@
     if (!workspace) return;
     try {
       workspace.clear();
-      // BlocklyXmlを使用
-      const xml = BlocklyXml.textToDom(xmlText);
-      BlocklyXml.domToWorkspace(xml, workspace);
+      // JSONかXMLかを判定
+      if (xmlText.trim().startsWith('{')) {
+        // JSON形式（新しいserialization format）
+        const state = JSON.parse(xmlText);
+        Blockly.serialization.workspaces.load(state, workspace);
+      } else {
+        // 古いXML形式の場合は、互換性のため対応を試みる
+        console.warn('XML形式は非推奨です。JSON形式の使用を推奨します。');
+        // XMLをパースして手動でブロックを作成するか、
+        // プロジェクトをJSON形式で再保存することをお勧めします
+      }
       updateCode();
     } catch (error) {
       console.error('Failed to load workspace:', error);
@@ -102,328 +140,240 @@
   export function loadSample(sampleNumber) {
     if (!workspace) return;
     
-    let xmlText = '';
+    workspace.clear();
     
     switch(sampleNumber) {
       case 1:
         // サンプル1: タッチセンサー
-        xmlText = `
-          <xml xmlns="https://developers.google.com/blockly/xml">
-            <block type="task_main" x="50" y="50">
-              <statement name="STATEMENTS">
-                <block type="set_sensor">
-                  <field name="PORT">1</field>
-                  <field name="TYPE">SENSOR_TOUCH</field>
-                  <next>
-                    <block type="while_loop">
-                      <value name="CONDITION">
-                        <block type="logic_boolean">
-                          <field name="BOOL">TRUE</field>
-                        </block>
-                      </value>
-                      <statement name="DO">
-                        <block type="if_else">
-                          <value name="CONDITION">
-                            <block type="sensor_value_bool">
-                              <field name="PORT">1</field>
-                            </block>
-                          </value>
-                          <statement name="DO">
-                            <block type="motor_on_fwd">
-                              <field name="MOTORS">OUT_A+OUT_C</field>
-                              <next>
-                                <block type="play_sound">
-                                  <field name="SOUND">SOUND_CLICK</field>
-                                </block>
-                              </next>
-                            </block>
-                          </statement>
-                          <statement name="ELSE">
-                            <block type="motor_off">
-                              <field name="MOTORS">OUT_A+OUT_C</field>
-                            </block>
-                          </statement>
-                        </block>
-                      </statement>
-                    </block>
-                  </next>
-                </block>
-              </statement>
-            </block>
-          </xml>
-        `;
+        loadSample1();
         break;
         
       case 2:
         // サンプル2: ライントレース
-        xmlText = `
-          <xml xmlns="https://developers.google.com/blockly/xml">
-            <block type="variables_declare_global" x="50" y="20">
-              <field name="VAR">threshold</field>
-              <value name="VALUE">
-                <block type="math_number">
-                  <field name="NUM">40</field>
-                </block>
-              </value>
-            </block>
-            <block type="task_main" x="50" y="80">
-              <statement name="STATEMENTS">
-                <block type="set_sensor">
-                  <field name="PORT">2</field>
-                  <field name="TYPE">SENSOR_LIGHT</field>
-                  <next>
-                    <block type="set_power">
-                      <field name="MOTORS">OUT_A+OUT_C</field>
-                      <field name="POWER">OUT_HALF</field>
-                      <next>
-                        <block type="while_loop">
-                          <value name="CONDITION">
-                            <block type="logic_boolean">
-                              <field name="BOOL">TRUE</field>
-                            </block>
-                          </value>
-                          <statement name="DO">
-                            <block type="if_else">
-                              <value name="CONDITION">
-                                <block type="logic_compare">
-                                  <field name="OP">LT</field>
-                                  <value name="A">
-                                    <block type="sensor_value">
-                                      <field name="PORT">2</field>
-                                    </block>
-                                  </value>
-                                  <value name="B">
-                                    <block type="variables_get">
-                                      <field name="VAR">threshold</field>
-                                    </block>
-                                  </value>
-                                </block>
-                              </value>
-                              <statement name="DO">
-                                <block type="motor_on_fwd">
-                                  <field name="MOTORS">OUT_A</field>
-                                  <next>
-                                    <block type="motor_off">
-                                      <field name="MOTORS">OUT_C</field>
-                                    </block>
-                                  </next>
-                                </block>
-                              </statement>
-                              <statement name="ELSE">
-                                <block type="motor_off">
-                                  <field name="MOTORS">OUT_A</field>
-                                  <next>
-                                    <block type="motor_on_fwd">
-                                      <field name="MOTORS">OUT_C</field>
-                                    </block>
-                                  </next>
-                                </block>
-                              </statement>
-                            </block>
-                          </statement>
-                        </block>
-                      </next>
-                    </block>
-                  </next>
-                </block>
-              </statement>
-            </block>
-          </xml>
-        `;
+        loadSample2();
         break;
         
       case 3:
         // サンプル3: 音楽演奏（マルチタスク）
-        xmlText = `
-          <xml xmlns="https://developers.google.com/blockly/xml">
-            <block type="task_main" x="50" y="50">
-              <statement name="STATEMENTS">
-                <block type="start_task">
-                  <field name="TASKNAME">melody1</field>
-                  <next>
-                    <block type="wait">
-                      <value name="DURATION">
-                        <block type="math_number">
-                          <field name="NUM">200</field>
-                        </block>
-                      </value>
-                      <next>
-                        <block type="start_task">
-                          <field name="TASKNAME">melody2</field>
-                          <next>
-                            <block type="wait">
-                              <value name="DURATION">
-                                <block type="math_number">
-                                  <field name="NUM">200</field>
-                                </block>
-                              </value>
-                              <next>
-                                <block type="stop_task">
-                                  <field name="TASKNAME">melody1</field>
-                                </block>
-                              </next>
-                            </block>
-                          </next>
-                        </block>
-                      </next>
-                    </block>
-                  </next>
-                </block>
-              </statement>
-            </block>
-            
-            <block type="task_custom" x="400" y="50">
-              <field name="TASKNAME">melody1</field>
-              <statement name="STATEMENTS">
-                <block type="repeat_times">
-                  <value name="TIMES">
-                    <block type="math_number">
-                      <field name="NUM">10</field>
-                    </block>
-                  </value>
-                  <statement name="DO">
-                    <block type="play_note">
-                      <field name="NOTE">262</field>
-                      <field name="DURATION">25</field>
-                      <next>
-                        <block type="wait">
-                          <value name="DURATION">
-                            <block type="math_number">
-                              <field name="NUM">25</field>
-                            </block>
-                          </value>
-                        </block>
-                      </next>
-                    </block>
-                  </statement>
-                </block>
-              </statement>
-            </block>
-            
-            <block type="task_custom" x="400" y="250">
-              <field name="TASKNAME">melody2</field>
-              <statement name="STATEMENTS">
-                <block type="repeat_times">
-                  <value name="TIMES">
-                    <block type="math_number">
-                      <field name="NUM">5</field>
-                    </block>
-                  </value>
-                  <statement name="DO">
-                    <block type="play_note">
-                      <field name="NOTE">392</field>
-                      <field name="DURATION">50</field>
-                      <next>
-                        <block type="wait">
-                          <value name="DURATION">
-                            <block type="math_number">
-                              <field name="NUM">50</field>
-                            </block>
-                          </value>
-                        </block>
-                      </next>
-                    </block>
-                  </statement>
-                </block>
-              </statement>
-            </block>
-          </xml>
-        `;
+        loadSample3();
         break;
         
       case 4:
         // サンプル4: データログ
-        xmlText = `
-          <xml xmlns="https://developers.google.com/blockly/xml">
-            <block type="variables_declare_global" x="50" y="20">
-              <field name="VAR">count</field>
-              <value name="VALUE">
-                <block type="math_number">
-                  <field name="NUM">0</field>
-                </block>
-              </value>
-            </block>
-            <block type="task_main" x="50" y="80">
-              <statement name="STATEMENTS">
-                <block type="set_sensor">
-                  <field name="PORT">1</field>
-                  <field name="TYPE">SENSOR_LIGHT</field>
-                  <next>
-                    <block type="create_datalog">
-                      <value name="SIZE">
-                        <block type="math_number">
-                          <field name="NUM">100</field>
-                        </block>
-                      </value>
-                      <next>
-                        <block type="clear_timer">
-                          <field name="TIMER">0</field>
-                          <next>
-                            <block type="repeat_times">
-                              <value name="TIMES">
-                                <block type="math_number">
-                                  <field name="NUM">100</field>
-                                </block>
-                              </value>
-                              <statement name="DO">
-                                <block type="add_to_datalog">
-                                  <value name="VALUE">
-                                    <block type="sensor_value">
-                                      <field name="PORT">1</field>
-                                    </block>
-                                  </value>
-                                  <next>
-                                    <block type="add_to_datalog">
-                                      <value name="VALUE">
-                                        <block type="timer_value">
-                                          <field name="TIMER">0</field>
-                                        </block>
-                                      </value>
-                                      <next>
-                                        <block type="variables_change">
-                                          <field name="VAR">count</field>
-                                          <value name="DELTA">
-                                            <block type="math_number">
-                                              <field name="NUM">1</field>
-                                            </block>
-                                          </value>
-                                          <next>
-                                            <block type="wait">
-                                              <value name="DURATION">
-                                                <block type="math_number">
-                                                  <field name="NUM">50</field>
-                                                </block>
-                                              </value>
-                                            </block>
-                                          </next>
-                                        </block>
-                                      </next>
-                                    </block>
-                                  </next>
-                                </block>
-                              </statement>
-                              <next>
-                                <block type="play_sound">
-                                  <field name="SOUND">SOUND_DOUBLE_BEEP</field>
-                                </block>
-                              </next>
-                            </block>
-                          </next>
-                        </block>
-                      </next>
-                    </block>
-                  </next>
-                </block>
-              </statement>
-            </block>
-          </xml>
-        `;
+        loadSample4();
         break;
     }
     
-    if (xmlText) {
-      loadWorkspaceXml(xmlText);
-    }
+    updateCode();
+  }
+  
+  function loadSample1() {
+    // タッチセンサーサンプル
+    const mainTask = workspace.newBlock('task_main');
+    mainTask.initSvg();
+    mainTask.moveBy(50, 50);
+    
+    const setSensor = workspace.newBlock('set_sensor');
+    setSensor.setFieldValue('1', 'PORT');
+    setSensor.setFieldValue('SENSOR_TOUCH', 'TYPE');
+    setSensor.initSvg();
+    
+    const whileLoop = workspace.newBlock('while_loop');
+    whileLoop.initSvg();
+    
+    const trueBlock = workspace.newBlock('logic_boolean');
+    trueBlock.setFieldValue('TRUE', 'BOOL');
+    trueBlock.initSvg();
+    
+    const ifElse = workspace.newBlock('if_else');
+    ifElse.initSvg();
+    
+    const sensorValue = workspace.newBlock('sensor_value_bool');
+    sensorValue.setFieldValue('1', 'PORT');
+    sensorValue.initSvg();
+    
+    const motorOnFwd = workspace.newBlock('motor_on_fwd');
+    motorOnFwd.setFieldValue('OUT_A+OUT_C', 'MOTORS');
+    motorOnFwd.initSvg();
+    
+    const playSound = workspace.newBlock('play_sound');
+    playSound.setFieldValue('SOUND_CLICK', 'SOUND');
+    playSound.initSvg();
+    
+    const motorOff = workspace.newBlock('motor_off');
+    motorOff.setFieldValue('OUT_A+OUT_C', 'MOTORS');
+    motorOff.initSvg();
+    
+    // 接続
+    mainTask.getInput('STATEMENTS').connection.connect(setSensor.previousConnection);
+    setSensor.nextConnection.connect(whileLoop.previousConnection);
+    whileLoop.getInput('CONDITION').connection.connect(trueBlock.outputConnection);
+    whileLoop.getInput('DO').connection.connect(ifElse.previousConnection);
+    ifElse.getInput('CONDITION').connection.connect(sensorValue.outputConnection);
+    ifElse.getInput('DO').connection.connect(motorOnFwd.previousConnection);
+    motorOnFwd.nextConnection.connect(playSound.previousConnection);
+    ifElse.getInput('ELSE').connection.connect(motorOff.previousConnection);
+    
+    mainTask.render();
+  }
+  
+  function loadSample2() {
+    // ライントレースサンプル
+    const varDecl = workspace.newBlock('variables_declare_global');
+    varDecl.setFieldValue('threshold', 'VAR');
+    varDecl.initSvg();
+    varDecl.moveBy(50, 20);
+    
+    const varValue = workspace.newBlock('math_number');
+    varValue.setFieldValue('40', 'NUM');
+    varValue.initSvg();
+    varDecl.getInput('VALUE').connection.connect(varValue.outputConnection);
+    
+    const mainTask = workspace.newBlock('task_main');
+    mainTask.initSvg();
+    mainTask.moveBy(50, 80);
+    
+    const setSensor = workspace.newBlock('set_sensor');
+    setSensor.setFieldValue('2', 'PORT');
+    setSensor.setFieldValue('SENSOR_LIGHT', 'TYPE');
+    setSensor.initSvg();
+    
+    const setPower = workspace.newBlock('set_power');
+    setPower.setFieldValue('OUT_A+OUT_C', 'MOTORS');
+    setPower.setFieldValue('OUT_HALF', 'POWER');
+    setPower.initSvg();
+    
+    const whileLoop = workspace.newBlock('while_loop');
+    whileLoop.initSvg();
+    
+    const trueBlock = workspace.newBlock('logic_boolean');
+    trueBlock.setFieldValue('TRUE', 'BOOL');
+    trueBlock.initSvg();
+    
+    const ifElse = workspace.newBlock('if_else');
+    ifElse.initSvg();
+    
+    const compare = workspace.newBlock('logic_compare');
+    compare.setFieldValue('LT', 'OP');
+    compare.initSvg();
+    
+    const sensorValue = workspace.newBlock('sensor_value');
+    sensorValue.setFieldValue('2', 'PORT');
+    sensorValue.initSvg();
+    
+    const varGet = workspace.newBlock('variables_get');
+    varGet.setFieldValue('threshold', 'VAR');
+    varGet.initSvg();
+    
+    const motorOnA = workspace.newBlock('motor_on_fwd');
+    motorOnA.setFieldValue('OUT_A', 'MOTORS');
+    motorOnA.initSvg();
+    
+    const motorOffC = workspace.newBlock('motor_off');
+    motorOffC.setFieldValue('OUT_C', 'MOTORS');
+    motorOffC.initSvg();
+    
+    const motorOffA = workspace.newBlock('motor_off');
+    motorOffA.setFieldValue('OUT_A', 'MOTORS');
+    motorOffA.initSvg();
+    
+    const motorOnC = workspace.newBlock('motor_on_fwd');
+    motorOnC.setFieldValue('OUT_C', 'MOTORS');
+    motorOnC.initSvg();
+    
+    // 接続
+    mainTask.getInput('STATEMENTS').connection.connect(setSensor.previousConnection);
+    setSensor.nextConnection.connect(setPower.previousConnection);
+    setPower.nextConnection.connect(whileLoop.previousConnection);
+    whileLoop.getInput('CONDITION').connection.connect(trueBlock.outputConnection);
+    whileLoop.getInput('DO').connection.connect(ifElse.previousConnection);
+    ifElse.getInput('CONDITION').connection.connect(compare.outputConnection);
+    compare.getInput('A').connection.connect(sensorValue.outputConnection);
+    compare.getInput('B').connection.connect(varGet.outputConnection);
+    ifElse.getInput('DO').connection.connect(motorOnA.previousConnection);
+    motorOnA.nextConnection.connect(motorOffC.previousConnection);
+    ifElse.getInput('ELSE').connection.connect(motorOffA.previousConnection);
+    motorOffA.nextConnection.connect(motorOnC.previousConnection);
+    
+    varDecl.render();
+    mainTask.render();
+  }
+  
+  function loadSample3() {
+    // 音楽演奏サンプル（簡略版）
+    const mainTask = workspace.newBlock('task_main');
+    mainTask.initSvg();
+    mainTask.moveBy(50, 50);
+    
+    const playNote1 = workspace.newBlock('play_note');
+    playNote1.setFieldValue('262', 'NOTE');
+    playNote1.setFieldValue('50', 'DURATION');
+    playNote1.initSvg();
+    
+    const wait1 = workspace.newBlock('wait');
+    wait1.initSvg();
+    const waitTime1 = workspace.newBlock('math_number');
+    waitTime1.setFieldValue('50', 'NUM');
+    waitTime1.initSvg();
+    wait1.getInput('DURATION').connection.connect(waitTime1.outputConnection);
+    
+    const playNote2 = workspace.newBlock('play_note');
+    playNote2.setFieldValue('392', 'NOTE');
+    playNote2.setFieldValue('50', 'DURATION');
+    playNote2.initSvg();
+    
+    const wait2 = workspace.newBlock('wait');
+    wait2.initSvg();
+    const waitTime2 = workspace.newBlock('math_number');
+    waitTime2.setFieldValue('50', 'NUM');
+    waitTime2.initSvg();
+    wait2.getInput('DURATION').connection.connect(waitTime2.outputConnection);
+    
+    // 接続
+    mainTask.getInput('STATEMENTS').connection.connect(playNote1.previousConnection);
+    playNote1.nextConnection.connect(wait1.previousConnection);
+    wait1.nextConnection.connect(playNote2.previousConnection);
+    playNote2.nextConnection.connect(wait2.previousConnection);
+    
+    mainTask.render();
+  }
+  
+  function loadSample4() {
+    // データログサンプル（簡略版）
+    const mainTask = workspace.newBlock('task_main');
+    mainTask.initSvg();
+    mainTask.moveBy(50, 50);
+    
+    const setSensor = workspace.newBlock('set_sensor');
+    setSensor.setFieldValue('1', 'PORT');
+    setSensor.setFieldValue('SENSOR_LIGHT', 'TYPE');
+    setSensor.initSvg();
+    
+    const createLog = workspace.newBlock('create_datalog');
+    createLog.initSvg();
+    const logSize = workspace.newBlock('math_number');
+    logSize.setFieldValue('100', 'NUM');
+    logSize.initSvg();
+    createLog.getInput('SIZE').connection.connect(logSize.outputConnection);
+    
+    const addLog = workspace.newBlock('add_to_datalog');
+    addLog.initSvg();
+    const sensorVal = workspace.newBlock('sensor_value');
+    sensorVal.setFieldValue('1', 'PORT');
+    sensorVal.initSvg();
+    addLog.getInput('VALUE').connection.connect(sensorVal.outputConnection);
+    
+    const playSound = workspace.newBlock('play_sound');
+    playSound.setFieldValue('SOUND_DOUBLE_BEEP', 'SOUND');
+    playSound.initSvg();
+    
+    // 接続
+    mainTask.getInput('STATEMENTS').connection.connect(setSensor.previousConnection);
+    setSensor.nextConnection.connect(createLog.previousConnection);
+    createLog.nextConnection.connect(addLog.previousConnection);
+    addLog.nextConnection.connect(playSound.previousConnection);
+    
+    mainTask.render();
   }
   
   const toolboxXml = `
