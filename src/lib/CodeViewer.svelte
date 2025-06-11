@@ -419,7 +419,8 @@
   .code-content-wrapper {
     display: flex;
     flex: 1;
-    overflow: auto;
+    overflow-x: auto;
+    overflow-y: auto;
     min-height: 0;
   }
   
