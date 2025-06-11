@@ -5,7 +5,9 @@
   import { readTextFile, writeTextFile } from '@tauri-apps/plugin-fs';
   import BlocklyWorkspace from './lib/BlocklyWorkspace.svelte';
   import CodeViewer from './lib/CodeViewer.svelte';
+  import SystemTools from './lib/SystemTools.svelte';
   
+  let activeTab = 'programming'; // 'programming' or 'system'
   let blocklyWorkspace;
   let generatedCode = '';
   let serialPorts = [];
@@ -277,6 +279,22 @@
 <main>
   <header>
     <h1>🧱 NQC Blockly IDE for LEGO RCX</h1>
+    <div class="header-tabs">
+      <button 
+        class="tab-button" 
+        class:active={activeTab === 'programming'}
+        on:click={() => activeTab = 'programming'}
+      >
+        プログラミング
+      </button>
+      <button 
+        class="tab-button" 
+        class:active={activeTab === 'system'}
+        on:click={() => activeTab = 'system'}
+      >
+        システムツール
+      </button>
+    </div>
     <div class="status">
       <span class="connection-status" class:connected={connectionStatus}>
         {connectionStatus ? '接続済み' : '未接続'}
@@ -284,82 +302,99 @@
     </div>
   </header>
 
-  <nav class="toolbar">
-    <div class="toolbar-section">
-      <span class="section-label">ファイル:</span>
-      <button on:click={clearWorkspace}>クリア</button>
-      <button on:click={saveProject}>保存</button>
-      <button on:click={loadProject}>読み込み</button>
-      <button on:click={exportNqcCode}>NQCエクスポート</button>
-    </div>
-    
-    <div class="toolbar-section">
-      <span class="section-label">サンプル:</span>
-      <button on:click={() => blocklyWorkspace.loadSample(1)} class="sample-button">
-        タッチセンサー
-      </button>
-      <button on:click={() => blocklyWorkspace.loadSample(2)} class="sample-button">
-        ライントレース
-      </button>
-      <button on:click={() => blocklyWorkspace.loadSample(3)} class="sample-button">
-        音楽演奏
-      </button>
-      <button on:click={() => blocklyWorkspace.loadSample(4)} class="sample-button">
-        データログ
-      </button>
-    </div>
-    
-    <div class="toolbar-section">
-      <span class="section-label">実行制御:</span>
-      <button on:click={compileCode}>コンパイル</button>
-      <button on:click={downloadToRCX} class="primary">🚀 RCXに転送</button>
-      <button on:click={() => controlRCX('run')}>実行</button>
-      <button on:click={() => controlRCX('stop')}>停止</button>
-      <button on:click={() => controlRCX('clear')} class="danger">クリア</button>
-      
-      <span class="section-label">接続設定:</span>
-      <select bind:value={selectedPort}>
-        {#each serialPorts as port}
-          <option value={port.path}>{port.name}</option>
-        {/each}
-      </select>
-      
-      <select bind:value={targetType}>
-        <option value="RCX">RCX</option>
-        <option value="RCX2">RCX2</option>
-        <option value="CM">CyberMaster</option>
-        <option value="Scout">Scout</option>
-      </select>
-      
-      <select bind:value={programSlot}>
-        <option value={1}>スロット 1</option>
-        <option value={2}>スロット 2</option>
-        <option value={3}>スロット 3</option>
-        <option value={4}>スロット 4</option>
-        <option value={5}>スロット 5</option>
-      </select>
-    </div>
-  </nav>
-
-  <div class="workspace-container">
-    <BlocklyWorkspace 
-      bind:this={blocklyWorkspace}
-      on:codeUpdate={handleCodeUpdate}
-    />
-    
-    <aside class="code-panel">
-      <div class="code-header">
-        <h3>生成されたNQCコード</h3>
+  {#if activeTab === 'programming'}
+    <nav class="toolbar">
+      <div class="toolbar-section">
+        <span class="section-label">ファイル:</span>
+        <button on:click={clearWorkspace}>クリア</button>
+        <button on:click={saveProject}>保存</button>
+        <button on:click={loadProject}>読み込み</button>
+        <button on:click={exportNqcCode}>NQCエクスポート</button>
       </div>
-      <CodeViewer code={generatedCode} errors={codeErrors} />
-    </aside>
-  </div>
+      
+      <div class="toolbar-section">
+        <span class="section-label">サンプル:</span>
+        <button on:click={() => blocklyWorkspace.loadSample(1)} class="sample-button">
+          タッチセンサー
+        </button>
+        <button on:click={() => blocklyWorkspace.loadSample(2)} class="sample-button">
+          ライントレース
+        </button>
+        <button on:click={() => blocklyWorkspace.loadSample(3)} class="sample-button">
+          音楽演奏
+        </button>
+        <button on:click={() => blocklyWorkspace.loadSample(4)} class="sample-button">
+          データログ
+        </button>
+      </div>
+      
+      <div class="toolbar-section">
+        <span class="section-label">実行制御:</span>
+        <button on:click={compileCode}>コンパイル</button>
+        <button on:click={downloadToRCX} class="primary">🚀 RCXに転送</button>
+        <button on:click={() => controlRCX('run')}>実行</button>
+        <button on:click={() => controlRCX('stop')}>停止</button>
+        <button on:click={() => controlRCX('clear')} class="danger">クリア</button>
+        
+        <span class="section-label">接続設定:</span>
+        <select bind:value={selectedPort}>
+          {#each serialPorts as port}
+            <option value={port.path}>{port.name}</option>
+          {/each}
+        </select>
+        
+        <select bind:value={targetType}>
+          <option value="RCX">RCX</option>
+          <option value="RCX2">RCX2</option>
+          <option value="CM">CyberMaster</option>
+          <option value="Scout">Scout</option>
+        </select>
+        
+        <select bind:value={programSlot}>
+          <option value={1}>スロット 1</option>
+          <option value={2}>スロット 2</option>
+          <option value={3}>スロット 3</option>
+          <option value={4}>スロット 4</option>
+          <option value={5}>スロット 5</option>
+        </select>
+      </div>
+    </nav>
+
+    <div class="workspace-container">
+      <BlocklyWorkspace 
+        bind:this={blocklyWorkspace}
+        on:codeUpdate={handleCodeUpdate}
+      />
+      
+      <aside class="code-panel">
+        <div class="code-header">
+          <h3>生成されたNQCコード</h3>
+        </div>
+        <CodeViewer code={generatedCode} errors={codeErrors} />
+      </aside>
+    </div>
+  {:else if activeTab === 'system'}
+    <div class="system-tools-container">
+      <SystemTools 
+        {nqcPath} 
+        {selectedPort}
+      />
+    </div>
+  {/if}
   
   <footer>
     <div class="settings">
       <label>
         NQCパス:
         <input type="text" bind:value={nqcPath} />
+      </label>
+      <label>
+        シリアルポート:
+        <select bind:value={selectedPort}>
+          {#each serialPorts as port}
+            <option value={port.path}>{port.name}</option>
+          {/each}
+        </select>
       </label>
     </div>
   </footer>
@@ -386,11 +421,36 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
   }
   
   h1 {
     margin: 0;
     font-size: 1.5rem;
+  }
+  
+  .header-tabs {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .tab-button {
+    padding: 0.5rem 1rem;
+    background-color: transparent;
+    color: #ecf0f1;
+    border: 1px solid #34495e;
+    border-radius: 4px 4px 0 0;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .tab-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .tab-button.active {
+    background-color: #34495e;
+    border-bottom-color: #34495e;
   }
   
   .connection-status {
@@ -468,6 +528,11 @@
   .workspace-container {
     flex: 1;
     display: flex;
+    overflow: hidden;
+  }
+  
+  .system-tools-container {
+    flex: 1;
     overflow: hidden;
   }
   
