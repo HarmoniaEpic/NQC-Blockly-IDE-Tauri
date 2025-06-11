@@ -429,7 +429,25 @@
           <field name="DURATION">50</field>
         </block>
       </category>
-      
+
+      <category name="見た目" colour="#9966FF">
+        <block type="select_display">
+          <field name="MODE">DISPLAY_WATCH</field>
+        </block>
+        <block type="set_user_display">
+          <value name="VALUE">
+            <block type="variables_get">
+              <field name="VAR">x</field>
+            </block>
+          </value>
+          <value name="PRECISION">
+            <block type="math_number">
+              <field name="NUM">0</field>
+            </block>
+          </value>
+        </block>
+      </category>
+
       <category name="イベント" colour="#FFBF00">
         <block type="task_main"></block>
         <block type="task_custom">
