@@ -291,6 +291,21 @@ export function initializeNqcGenerator() {
     return `PlayTone(${frequency}, ${duration});\n`;
   };
   
+  // =========================
+  // LCD表示ジェネレータ
+  // =========================
+  
+  nqcGenerator['select_display'] = function(block) {
+    const mode = block.getFieldValue('MODE');
+    return `SelectDisplay(${mode});\n`;
+  };
+  
+  nqcGenerator['set_user_display'] = function(block) {
+    const value = nqcGenerator.valueToCode(block, 'VALUE', nqcGenerator.ORDER_ATOMIC) || '0';
+    const precision = nqcGenerator.valueToCode(block, 'PRECISION', nqcGenerator.ORDER_ATOMIC) || '0';
+    return `SetUserDisplay(${value}, ${precision});\n`;
+  };
+  
   // 待機
   nqcGenerator['wait'] = function(block) {
     const duration = nqcGenerator.valueToCode(block, 'DURATION', nqcGenerator.ORDER_ATOMIC) || '100';
