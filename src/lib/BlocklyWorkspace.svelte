@@ -394,6 +394,9 @@
         <block type="motor_on_fwd">
           <field name="MOTORS">OUT_A</field>
         </block>
+        <block type="motor_on_rev">
+          <field name="MOTORS">OUT_A</field>
+        </block>
         <block type="motor_on_for">
           <field name="MOTORS">OUT_A</field>
           <value name="TIME">
@@ -401,6 +404,12 @@
               <field name="NUM">100</field>
             </block>
           </value>
+        </block>
+        <block type="motor_float">
+          <field name="MOTORS">OUT_A</field>
+        </block>
+        <block type="motor_toggle">
+          <field name="MOTORS">OUT_A</field>
         </block>
         <block type="set_power">
           <field name="MOTORS">OUT_A</field>
@@ -411,6 +420,9 @@
       <category name="音" colour="#FF6EC7">
         <block type="play_sound">
           <field name="SOUND">SOUND_CLICK</field>
+        </block>
+        <block type="play_system_sound">
+          <field name="SOUND_ID">0</field>
         </block>
         <block type="play_tone">
           <value name="FREQ">
@@ -427,6 +439,10 @@
         <block type="play_note">
           <field name="NOTE">262</field>
           <field name="DURATION">50</field>
+        </block>
+        <block type="play_musical_note">
+          <field name="NOTE">262</field>
+          <field name="DURATION">25</field>
         </block>
       </category>
 
@@ -466,6 +482,7 @@
         <block type="controls_if"></block>
         <block type="controls_ifelse"></block>
         <block type="while_loop"></block>
+        <block type="do_while_loop"></block>
         <block type="controls_whileUntil"></block>
         <block type="controls_for">
           <value name="FROM">
@@ -498,6 +515,8 @@
             </block>
           </value>
         </block>
+        <block type="wait_until"></block>
+        <block type="break_statement"></block>
       </category>
       
       <category name="調べる" colour="#4CBFE6">
@@ -505,10 +524,17 @@
           <field name="PORT">1</field>
           <field name="TYPE">SENSOR_TOUCH</field>
         </block>
+        <block type="set_sensor_mode">
+          <field name="PORT">1</field>
+          <field name="MODE">SENSOR_MODE_RAW</field>
+        </block>
         <block type="sensor_value">
           <field name="PORT">1</field>
         </block>
         <block type="sensor_value_bool">
+          <field name="PORT">1</field>
+        </block>
+        <block type="sensor_value_raw">
           <field name="PORT">1</field>
         </block>
         <block type="clear_sensor">
@@ -525,6 +551,13 @@
       <category name="演算" colour="#40BF4A">
         <block type="math_number">
           <field name="NUM">0</field>
+        </block>
+        <block type="random_number">
+          <value name="MAX">
+            <block type="math_number">
+              <field name="NUM">10</field>
+            </block>
+          </value>
         </block>
         <block type="math_arithmetic">
           <field name="OP">ADD</field>
