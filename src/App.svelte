@@ -283,7 +283,7 @@
       </span>
     </div>
   </header>
-    
+
   <nav class="toolbar">
     <div class="toolbar-section">
       <span class="section-label">ファイル:</span>
@@ -340,7 +340,7 @@
       </select>
     </div>
   </nav>
-  
+
   <div class="workspace-container">
     <BlocklyWorkspace 
       bind:this={blocklyWorkspace}
