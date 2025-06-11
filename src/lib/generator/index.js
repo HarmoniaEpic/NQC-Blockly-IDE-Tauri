@@ -291,10 +291,7 @@ export function initializeNqcGenerator() {
     return `PlayTone(${frequency}, ${duration});\n`;
   };
   
-  // =========================
-  // LCD表示ジェネレータ
-  // =========================
-  
+  // LCD表示
   nqcGenerator['select_display'] = function(block) {
     const mode = block.getFieldValue('MODE');
     return `SelectDisplay(${mode});\n`;
