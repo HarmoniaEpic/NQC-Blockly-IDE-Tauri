@@ -283,9 +283,10 @@
       </span>
     </div>
   </header>
-
+    
   <nav class="toolbar">
     <div class="toolbar-section">
+      <span class="section-label">ファイル:</span>
       <button on:click={clearWorkspace}>クリア</button>
       <button on:click={saveProject}>保存</button>
       <button on:click={loadProject}>読み込み</button>
@@ -293,21 +294,30 @@
     </div>
     
     <div class="toolbar-section">
+      <span class="section-label">サンプル:</span>
       <button on:click={() => blocklyWorkspace.loadSample(1)} class="sample-button">
-        サンプル: タッチセンサー
+        タッチセンサー
       </button>
       <button on:click={() => blocklyWorkspace.loadSample(2)} class="sample-button">
-        サンプル: ライントレース
+        ライントレース
       </button>
       <button on:click={() => blocklyWorkspace.loadSample(3)} class="sample-button">
-        サンプル: 音楽演奏
+        音楽演奏
       </button>
       <button on:click={() => blocklyWorkspace.loadSample(4)} class="sample-button">
-        サンプル: データログ
+        データログ
       </button>
     </div>
     
     <div class="toolbar-section">
+      <span class="section-label">実行制御:</span>
+      <button on:click={compileCode}>コンパイル</button>
+      <button on:click={downloadToRCX} class="primary">🚀 RCXに転送</button>
+      <button on:click={() => controlRCX('run')}>実行</button>
+      <button on:click={() => controlRCX('stop')}>停止</button>
+      <button on:click={() => controlRCX('clear')} class="danger">クリア</button>
+      
+      <span class="section-label">接続設定:</span>
       <select bind:value={selectedPort}>
         {#each serialPorts as port}
           <option value={port.path}>{port.name}</option>
@@ -329,16 +339,8 @@
         <option value={5}>スロット 5</option>
       </select>
     </div>
-    
-    <div class="toolbar-section">
-      <button on:click={compileCode}>コンパイル</button>
-      <button on:click={downloadToRCX} class="primary">🚀 RCXに転送</button>
-      <button on:click={() => controlRCX('run')}>実行</button>
-      <button on:click={() => controlRCX('stop')}>停止</button>
-      <button on:click={() => controlRCX('clear')} class="danger">クリア</button>
-    </div>
   </nav>
-
+  
   <div class="workspace-container">
     <BlocklyWorkspace 
       bind:this={blocklyWorkspace}
